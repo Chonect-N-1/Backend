@@ -1,5 +1,6 @@
 package com.ejemplo.demo.infrastructure.helpers.mappers;
 
+import com.ejemplo.demo.api.dto.auth.AuthenticationRequest;
 import com.ejemplo.demo.api.dto.request.UserCreateRequest;
 import com.ejemplo.demo.api.dto.request.UserUpdateRequest;
 import com.ejemplo.demo.api.dto.response.UserBasicResponse;
@@ -10,11 +11,27 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2025-09-08T23:44:26-0500",
+    date = "2025-09-09T00:20:15-0500",
     comments = "version: 1.5.2.Final, compiler: Eclipse JDT (IDE) 3.43.0.v20250819-1513, environment: Java 21.0.8 (Eclipse Adoptium)"
 )
 @Component
 public class UserMapperImpl implements UserMapper {
+
+    @Override
+    public UserEntity toUserCreateEntity(AuthenticationRequest request) {
+        if ( request == null ) {
+            return null;
+        }
+
+        UserEntity.UserEntityBuilder userEntity = UserEntity.builder();
+
+        userEntity.email( request.username() );
+        userEntity.fullName( request.username() );
+        userEntity.password( request.password() );
+        userEntity.username( request.username() );
+
+        return userEntity.build();
+    }
 
     @Override
     public UserEntity toUserCreateEntity(UserCreateRequest request) {

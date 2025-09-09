@@ -6,6 +6,7 @@ import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
 import org.mapstruct.MappingTarget;
 
+import com.ejemplo.demo.api.dto.auth.AuthenticationRequest;
 import com.ejemplo.demo.api.dto.request.UserCreateRequest;
 import com.ejemplo.demo.api.dto.request.UserUpdateRequest;
 import com.ejemplo.demo.api.dto.response.UserBasicResponse;
@@ -14,6 +15,12 @@ import com.ejemplo.demo.domain.entities.UserEntity;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface UserMapper {
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "role", ignore = true)
+    @Mapping(target = "email", source = "username")
+    @Mapping(target = "fullName", source = "username")
+    UserEntity toUserCreateEntity(AuthenticationRequest request);
+
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "role", ignore = true)
     UserEntity toUserCreateEntity(UserCreateRequest request);
