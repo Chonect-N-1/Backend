@@ -26,6 +26,11 @@ public interface UserMapper {
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "role", ignore = true)
+    @Mapping(target = "username", source = "username")
+    @Mapping(target = "password", source = "password")
+    @Mapping(target = "email", source = "email")
+    @Mapping(target = "fullName", source = "fullName")
+    @Mapping(target = "birthDate", source = "birthDate")
     UserEntity toUserCreateEntity(UserCreateRequest request);
 
     @Mapping(target = "id", ignore = true)
