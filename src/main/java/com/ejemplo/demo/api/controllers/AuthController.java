@@ -17,7 +17,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/api/v1/auth") // ✅ ahora sí coincide con tu frontend
+@RequestMapping("/auth")
 @RequiredArgsConstructor
 public class AuthController {
 

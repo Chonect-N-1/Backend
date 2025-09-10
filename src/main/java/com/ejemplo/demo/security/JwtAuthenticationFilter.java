@@ -34,9 +34,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         final String jwt;
         final String userEmail;
 
-        // 1. Ignorar preflight (CORS) y rutas públicas
+        // 1. Ignorar preflight (CORS) y rutas públicas (context-path ya removido del servletPath)
         if ("OPTIONS".equalsIgnoreCase(request.getMethod())
-                || request.getServletPath().startsWith("/api/v1/auth/")) {
+                || request.getServletPath().startsWith("/auth/")) {
             filterChain.doFilter(request, response);
             return;
         }
