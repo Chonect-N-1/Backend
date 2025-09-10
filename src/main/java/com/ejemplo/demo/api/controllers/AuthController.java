@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.ejemplo.demo.api.dto.auth.AuthenticationRequest;
 import com.ejemplo.demo.api.dto.auth.AuthenticationResponse;
+import com.ejemplo.demo.api.dto.request.UserCreateRequest;
 import com.ejemplo.demo.domain.entities.UserEntity;
 import com.ejemplo.demo.utils.enums.Role;
 import com.ejemplo.demo.infrastructure.helpers.mappers.UserMapper;
@@ -32,7 +33,7 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<AuthenticationResponse> register(
-            @Valid @RequestBody AuthenticationRequest request) {
+            @Valid @RequestBody UserCreateRequest request) {
         // Por defecto, los usuarios registrados tendrán el rol CUSTOMER
         UserEntity user = userMapper.toUserCreateEntity(request);
         user.setRole(Role.CUSTOMER);
