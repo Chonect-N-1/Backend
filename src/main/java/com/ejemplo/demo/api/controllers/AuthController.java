@@ -17,7 +17,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/api/v1/auth")
+@RequestMapping("/api/v1/auth") // ✅ ahora sí coincide con tu frontend
 @RequiredArgsConstructor
 public class AuthController {
 
@@ -33,7 +33,7 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<AuthenticationResponse> register(
             @Valid @RequestBody AuthenticationRequest request) {
-        // Por defecto, los usuarios registrados tendrán el rol USER
+        // Por defecto, los usuarios registrados tendrán el rol CUSTOMER
         UserEntity user = userMapper.toUserCreateEntity(request);
         user.setRole(Role.CUSTOMER);
         return ResponseEntity.ok(authenticationService.register(user));

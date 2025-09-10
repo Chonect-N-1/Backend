@@ -13,7 +13,10 @@ import com.ejemplo.demo.api.dto.response.UserBasicResponse;
 import com.ejemplo.demo.api.dto.response.UserResponse;
 import com.ejemplo.demo.domain.entities.UserEntity;
 
-@Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
+@Mapper(
+    componentModel = MappingConstants.ComponentModel.SPRING,
+    unmappedTargetPolicy = org.mapstruct.ReportingPolicy.IGNORE
+)
 public interface UserMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "role", ignore = true)
