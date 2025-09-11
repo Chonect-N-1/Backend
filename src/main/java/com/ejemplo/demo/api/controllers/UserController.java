@@ -15,7 +15,7 @@ import com.ejemplo.demo.infrastructure.abstract_services.IUserService;
 import lombok.AllArgsConstructor;
 
 @RestController
-@RequestMapping(path = "/user")
+@RequestMapping(path = "/api/v1/user")
 @AllArgsConstructor
 public class UserController implements
         BasicController<UserResponse, UserBasicResponse, UserCreateRequest, UserUpdateRequest> {
