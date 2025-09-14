@@ -1,10 +1,13 @@
 {
+    "$schema": "http://json.schemastore.org/schema-catalog",
+    "json.schemaDownload.enable": false,
     "java.configuration.updateBuildConfiguration": "interactive",
     "java.compile.nullAnalysis.mode": "automatic",
     "java.configuration.runtimes": [
+      
       {
         "name": "JavaSE-17",
-        "path": "C:\\Program Files\\Eclipse Adoptium\\jdk-17" 
+        "path": "C:\\Program Files\\Eclipse Adoptium\\jdk-17.0.16.8-hotspot" 
       }
     ],
     "java.format.settings.url": ".vscode/java-formatter.xml"
