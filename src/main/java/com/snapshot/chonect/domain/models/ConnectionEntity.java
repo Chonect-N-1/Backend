@@ -1,0 +1,23 @@
+package com.snapshot.chonect.domain.models;
+
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Entity(name = "connection")
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class ConnectionEntity {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    
+    private String fromElementId;
+    private String toElementId;
+    private String actionType;
+    private Integer orderNum;
+    private Integer delay;
+    private Boolean parallel;
+}

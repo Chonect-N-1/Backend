@@ -1,0 +1,31 @@
+package com.snapshot.chonect.domain.models;
+
+import com.snapshot.chonect.utils.objects.ElementLayer;
+
+import jakarta.persistence.*;
+import lombok.Data;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
+
+@Entity(name = "element")
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class ElementEntity {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    
+    private String elementId;
+    private String type;
+    private String positionX;
+    private String positionY;
+    
+    // El @Lob es tan solo que el objeto va a ser muy muy grande
+    @Lob
+    @Column(columnDefinition = "TEXT")
+    private String styles;
+    
+    @Embedded
+    private ElementLayer layer;
+}
