@@ -53,12 +53,17 @@ public class SecurityConfiguration {
                         "/api/v1/user/**",
                         "/graphql/**",
                         "/graphiql",
-                        "/graphiql/**"
-                    ).permitAll().anyRequest().permitAll()
+                        "/graphiql/**",
+                        "/swagger-ui/**",
+                        "/v3/api-docs/**",
+                        "/swagger-ui.html"
+                    ).permitAll()
 
                     .requestMatchers(
                         "/api/v1/auth/delete"
-                    ).authenticated().anyRequest().authenticated()
+                    ).authenticated()
+
+                    .anyRequest().permitAll()
             //     // .requestMatchers("/admin/**").hasRole("ADMIN")
             //     // .requestMatchers("/user/**").hasAnyRole("USER", "ADMIN")
                     
@@ -86,7 +91,7 @@ public class SecurityConfiguration {
     public CorsConfigurationSource corsConfigurationSource (){
         CorsConfiguration configuration = new CorsConfiguration();
         // no me gusta mucho dejar los datos asi de expuestos pero creo que son temporales 
-        configuration.setAllowedOrigins(List.of("http://localhost:5173", "http://localhost:8080/**", "https://chonect-n-1.onrender.com"));
+        configuration.setAllowedOrigins(List.of("http://localhost:5173", "http://localhost:8080", "https://chonect-n-1.onrender.com"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE"));
         configuration.setAllowedHeaders(List.of("*"));  // ← AGREGAR ESTO
         configuration.setAllowCredentials(true);

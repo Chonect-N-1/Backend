@@ -11,7 +11,6 @@ import lombok.Setter;
 @Getter
 @Setter
 public class VerifyUserDto {
-    private String search;
 
     @Size(min = 1, max = 100, message = "el email debe tener entre 1 a 100 caracteres")
     @NotBlank(message = "el email es requerido")

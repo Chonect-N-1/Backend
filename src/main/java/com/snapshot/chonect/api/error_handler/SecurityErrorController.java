@@ -18,6 +18,10 @@ import com.snapshot.chonect.api.dto.errors.ErrorsResponse;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.security.SignatureException;
 
+/**
+ * Controlador de errores específico para excepciones de seguridad
+ * Configurado para no interferir con SpringDoc OpenAPI (Swagger)
+ */
 @RestControllerAdvice
 public class SecurityErrorController {
 
@@ -26,7 +30,7 @@ public class SecurityErrorController {
     public BaseErrorResponse handleBadCredentials(BadCredentialsException exception) {
         List<String> errors = new ArrayList<>();
         errors.add("Usuario o contraseña incorrectos");
-        
+
         return ErrorsResponse.builder()
                 .code(HttpStatus.UNAUTHORIZED.value())
                 .status(HttpStatus.UNAUTHORIZED.name())
@@ -39,7 +43,7 @@ public class SecurityErrorController {
     public BaseErrorResponse handleAccountStatus(AccountStatusException exception) {
         List<String> errors = new ArrayList<>();
         errors.add("La cuenta está bloqueada o deshabilitada");
-        
+
         return ErrorsResponse.builder()
                 .code(HttpStatus.FORBIDDEN.value())
                 .status(HttpStatus.FORBIDDEN.name())
@@ -52,7 +56,7 @@ public class SecurityErrorController {
     public BaseErrorResponse handleAccessDenied(AccessDeniedException exception) {
         List<String> errors = new ArrayList<>();
         errors.add("No tienes permisos para acceder a este recurso");
-        
+
         return ErrorsResponse.builder()
                 .code(HttpStatus.FORBIDDEN.value())
                 .status(HttpStatus.FORBIDDEN.name())
@@ -65,7 +69,7 @@ public class SecurityErrorController {
     public BaseErrorResponse handleSignatureException(SignatureException exception) {
         List<String> errors = new ArrayList<>();
         errors.add("Token JWT inválido o firma no verificada");
-        
+
         return ErrorsResponse.builder()
                 .code(HttpStatus.FORBIDDEN.value())
                 .status(HttpStatus.FORBIDDEN.name())
@@ -78,7 +82,7 @@ public class SecurityErrorController {
     public BaseErrorResponse handleExpiredJwt(ExpiredJwtException exception) {
         List<String> errors = new ArrayList<>();
         errors.add("El token JWT ha expirado");
-        
+
         return ErrorsResponse.builder()
                 .code(HttpStatus.FORBIDDEN.value())
                 .status(HttpStatus.FORBIDDEN.name())
@@ -91,7 +95,7 @@ public class SecurityErrorController {
     public BaseErrorResponse handleAuthentication(AuthenticationException exception) {
         List<String> errors = new ArrayList<>();
         errors.add("Error de autenticación: " + exception.getMessage());
-        
+
         return ErrorsResponse.builder()
                 .code(HttpStatus.UNAUTHORIZED.value())
                 .status(HttpStatus.UNAUTHORIZED.name())

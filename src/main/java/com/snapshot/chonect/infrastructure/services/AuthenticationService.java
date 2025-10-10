@@ -156,8 +156,10 @@ public class AuthenticationService {
     // Busca al usuario por su email. Si no lo encuentra, lanza una excepción.
         UserEntity user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new IdNotFoundException(ErrorMessages.emailNotFound("Usuario con email: " + email)));
-        
+
         // Si el usuario existe, lo elimina.
         userRepository.deleteById(user.getId());
     }
+
+
 }

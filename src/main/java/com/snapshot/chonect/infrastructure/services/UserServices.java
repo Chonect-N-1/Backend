@@ -42,4 +42,9 @@ public class UserServices implements IUserService {
         userUpdate.setId(id);
         return this.userMapper.userEntityToUserResponse(this.userRepository.save(userUpdate));
     }
+
+    public UserEntity getByEmail(String email) {
+        return this.userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado con email: " + email));
+    }
 }
