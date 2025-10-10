@@ -39,15 +39,31 @@ public class SecurityConfiguration {
             // para que realice acciones no deseadas en una aplicación en la que el usuario está autenticado.
             .csrf(csrf ->csrf.disable())
             // si mal no recuerdo authorizeHttpRequests sirve como middleware 
+            // puede llegar a dar errores si no se maneja bien
             // ya que proive que las rutas sean publicas a excepcion de "/auth/login", "/auth/register"
             // si es necesario se tiene que agregar mas a un futuro cercano
-            .authorizeHttpRequests(authorize -> authorize
-                // mientras estoy en desarrollo voy a dejar el permitAll
-                .requestMatchers("/auth/**").permitAll()
-                // .requestMatchers("/admin/**").hasRole("ADMIN")
-                // .requestMatchers("/user/**").hasAnyRole("USER", "ADMIN")
-                .anyRequest().authenticated()
+
+            .authorizeHttpRequests(auth -> auth
+                // pero carlos si lo sacas a producion cambialo
+                    .requestMatchers(
+                        "/api/v1/auth/signup",
+                        "/api/v1/auth/login",
+                        "/api/v1/auth/verify",
+                        "/api/v1/auth/resend",
+                        "/api/v1/user/**",
+                        "/graphql/**",
+                        "/graphiql",
+                        "/graphiql/**"
+                    ).permitAll().anyRequest().permitAll()
+
+                    .requestMatchers(
+                        "/api/v1/auth/delete"
+                    ).authenticated().anyRequest().authenticated()
+            //     // .requestMatchers("/admin/**").hasRole("ADMIN")
+            //     // .requestMatchers("/user/**").hasAnyRole("USER", "ADMIN")
+                    
             )
+            
             // este punto vuelve stateless la aplicacion (que es volver todas las apis desconectada)
             // la IA me mando estos comportamientos:
             // ~ No crea sesiones HTTP en el servidor
@@ -73,7 +89,8 @@ public class SecurityConfiguration {
         configuration.setAllowedOrigins(List.of("http://localhost:5173", "http://localhost:8080/**", "https://chonect-n-1.onrender.com"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE"));
         configuration.setAllowedHeaders(List.of("*"));  // ← AGREGAR ESTO
-        configuration.setAllowCredentials(true);        // ← AGREGAR ESTO
+        configuration.setAllowCredentials(true);
+        configuration.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);

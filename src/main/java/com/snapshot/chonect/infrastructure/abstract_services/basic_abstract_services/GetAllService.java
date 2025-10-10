@@ -1,7 +1,7 @@
 package com.snapshot.chonect.infrastructure.abstract_services.basic_abstract_services;
 
-import org.springframework.data.domain.Page;
+import java.util.List;
 
 public interface GetAllService<RS> {
-    public Page<RS> getAll(int page, int size);
+    public List<RS> getAll();
 }

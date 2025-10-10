@@ -5,8 +5,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.snapshot.chonect.api.controllers.Basic_controller.BasicController;
-import com.snapshot.chonect.api.dto.request.UserRequest;
+import com.snapshot.chonect.api.controllers.Basic_controller.GetByIdController;
+import com.snapshot.chonect.api.controllers.Basic_controller.PutController;
 import com.snapshot.chonect.api.dto.request.UserUpdateRequest;
 import com.snapshot.chonect.api.dto.response.UserResponse;
 import com.snapshot.chonect.infrastructure.services.UserServices;
@@ -14,29 +14,17 @@ import com.snapshot.chonect.infrastructure.services.UserServices;
 import lombok.AllArgsConstructor;
 
 @RestController
-@RequestMapping(path = "/user")
+@RequestMapping(path = "/api/v1/user")
 @AllArgsConstructor
-public class UserController implements 
-    BasicController<UserResponse, UserRequest, UserUpdateRequest>
+public class UserController implements GetByIdController<UserResponse>, PutController<UserResponse, UserUpdateRequest>
     {
     
     @Autowired
     private final UserServices userServices;
     
     @Override
-    public ResponseEntity<Void> delete(Long id) {
-        this.userServices.delete(id);
-        return ResponseEntity.noContent().build();
-    }
-
-    @Override
     public ResponseEntity<UserResponse> getById(Long id) {
         return ResponseEntity.ok(this.userServices.getById(id));
-    }
-
-    @Override
-    public ResponseEntity<UserResponse> insert(UserRequest request) {
-        return ResponseEntity.ok(this.userServices.create(request));
     }
 
     @Override

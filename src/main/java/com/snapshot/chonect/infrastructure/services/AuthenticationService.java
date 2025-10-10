@@ -14,6 +14,7 @@ import com.snapshot.chonect.api.dto.request.LoginUserDto;
 import com.snapshot.chonect.api.dto.request.RegisterRequest;
 import com.snapshot.chonect.domain.models.UserEntity;
 import com.snapshot.chonect.domain.repositories.UserRepository;
+import com.snapshot.chonect.utils.enums.Role;
 import com.snapshot.chonect.utils.exceptions.BadRequestException;
 import com.snapshot.chonect.utils.exceptions.IdNotFoundException;
 import com.snapshot.chonect.utils.exceptions.UnauthorizedException;
@@ -43,12 +44,22 @@ public class AuthenticationService {
     }
 
     public UserEntity signup(RegisterRequest registerUserDto) {
+
+        if (userRepository.findByEmail(registerUserDto.getEmail()).isPresent()) {
+            throw new BadRequestException("El email ya está registrado");
+        }
+    
+        if (userRepository.existsByUsername(registerUserDto.getUsername())) {
+            throw new BadRequestException("El nombre de usuario ya está en uso");
+        }
+
         UserEntity user = UserEntity.builder()
         .username(registerUserDto.getUsername())
         .email(registerUserDto.getEmail())
         .password(passwordEncoder.encode(registerUserDto.getPassword()))
         .fullName(registerUserDto.getFullName() != null ? registerUserDto.getFullName() : registerUserDto.getUsername()) 
         .enabled(false)
+        .role(Role.CUSTOMER)
         .verificationCode(generateVerificationCode())
         .verificationCodeExpireAt(LocalDateTime.now().plusMinutes(15))
         .build();
@@ -147,6 +158,6 @@ public class AuthenticationService {
                 .orElseThrow(() -> new IdNotFoundException(ErrorMessages.emailNotFound("Usuario con email: " + email)));
         
         // Si el usuario existe, lo elimina.
-        userRepository.delete(user);
+        userRepository.deleteById(user.getId());
     }
 }

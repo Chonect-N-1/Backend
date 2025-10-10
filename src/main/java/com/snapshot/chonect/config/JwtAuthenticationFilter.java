@@ -45,6 +45,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter{
             @NonNull FilterChain filterChain) throws ServletException, IOException {
         // esto es bastante facil de explicar tan solo son los elementos de la cabezera
         // por eso mismo crea el authHeader y
+
+        String path = request.getServletPath();
+        if (path.startsWith("/api/auth/") || 
+            path.startsWith("/api/public/") ||
+            path.equals("/graphiql") ||
+            path.startsWith("/graphiql/")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         final String authHeader = request.getHeader("Authorization");
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {

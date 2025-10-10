@@ -7,8 +7,13 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.snapshot.chonect.api.dto.request.UserUpdateRequest;
+import com.snapshot.chonect.api.dto.response.UserResponse;
+
 @RestController
 public interface PutController<RESPONSE, REQUEST> {
     @PutMapping("/{id}")
     public ResponseEntity<RESPONSE> update(@Validated @RequestBody REQUEST request, @PathVariable Long id);
+
+    ResponseEntity<UserResponse> update(UserUpdateRequest request, Long id);
 }

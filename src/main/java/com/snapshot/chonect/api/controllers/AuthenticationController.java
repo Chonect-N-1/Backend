@@ -18,7 +18,7 @@ import com.snapshot.chonect.infrastructure.services.JwtService;
 
 import lombok.AllArgsConstructor;
 
-@RequestMapping(path = "/auth")
+@RequestMapping(path = "/api/v1/auth")
 @RestController
 @AllArgsConstructor
 public class AuthenticationController {
