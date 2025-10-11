@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: chonect-backend
+    env: java
+    buildCommand: "./mvnw clean package -DskipTests"
+    startCommand: "java -jar target/*.jar --spring.config.location=file:src/main/resources/application.properties"
+    port: 10000
+    healthCheckPath: /actuator/health
+    autoDeploy: false
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      - key: SPRING_DATASOURCE_URL
+        generateValue: true
+      - key: SPRING_DATASOURCE_USERNAME
+        generateValue: true
+      - key: SPRING_DATASOURCE_PASSWORD
+        generateValue: true
+      - key: SPRING_JPA_HIBERNATE_DDL_AUTO
+        value: update
+      - key: SPRING_JPA_DATABASE_PLATFORM
+        value: org.hibernate.dialect.MySQLDialect
