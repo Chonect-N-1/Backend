@@ -4,6 +4,8 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.Random;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -20,10 +22,14 @@ import com.snapshot.chonect.utils.exceptions.IdNotFoundException;
 import com.snapshot.chonect.utils.exceptions.UnauthorizedException;
 import com.snapshot.chonect.utils.messages.ErrorMessages;
 
+import jakarta.mail.MessagingException;
+
 // import lombok.AllArgsConstructor;
 
 @Service
 public class AuthenticationService {
+
+    private static final Logger logger = LoggerFactory.getLogger(AuthenticationService.class);
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -140,9 +146,12 @@ public class AuthenticationService {
 
         try {
             emailService.sendVerificationEmail(user.getEmail(), subject, htmlMessage);
+        } catch (MessagingException e) {
+            logger.error("Error de mensajería al enviar correo de verificación a {}: {}", user.getEmail(), e.getMessage(), e);
+            throw new BadRequestException("Error al enviar correo de verificación. Por favor, inténtelo de nuevo más tarde.");
         } catch (Exception e) {
-            System.out.println(e);
-            throw new BadRequestException(e.getMessage());
+            logger.error("Error inesperado al enviar correo de verificación a {}: {}", user.getEmail(), e.getMessage(), e);
+            throw new BadRequestException("Error interno del servidor. Por favor, contacte al administrador.");
         }
     }
 
