@@ -11,10 +11,15 @@ import org.springframework.mail.javamail.JavaMailSenderImpl;
 @Configuration
 public class EmailConfiguration {
 
+    @Value("${spring.mail.host}")
+    private String emailHost;
+
+    @Value("${spring.mail.port}")
+    private int emailPort;
+
     @Value("${spring.mail.username}")
     private String emailUsername;
 
-    // no es el password de mi correo sino que el password autogenerado de google
     @Value("${spring.mail.password}")
     private String emailPassword;
 
@@ -23,21 +28,22 @@ public class EmailConfiguration {
 
     @Bean
     public JavaMailSender javaMailSender(){
-        // para explicar por encima como va esta vaina loca
-        // el mailSender es como el envoltorio de todas la info
-        // que necesito para mandar el email
+        // Configuración dinámica usando propiedades de aplicación
         JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
-        mailSender.setHost("smtp.gmail.com");
-        mailSender.setPort(587);
+
+        // Usar valores de configuración en lugar de hardcodear
+        mailSender.setHost(emailHost);
+        mailSender.setPort(emailPort);
         mailSender.setUsername(emailUsername);
         mailSender.setPassword(emailPassword);
 
-        // aqui le pasa algunas propiedades del email, inclullendo el auth
+        // Propiedades del email usando configuración externa
         Properties props = mailSender.getJavaMailProperties();
         props.put("mail.transport.protocol", "smtp");
         props.put("mail.smtp.auth", "true");
         props.put("mail.smtp.starttls.enable", "true");
-        props.put("mail.debug","true");
+        props.put("mail.smtp.starttls.required", "true");
+        props.put("mail.debug", "true");
 
         return mailSender;
     }

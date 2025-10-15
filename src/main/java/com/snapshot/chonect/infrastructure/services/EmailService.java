@@ -30,8 +30,10 @@ public class EmailService {
     public void sendVerificationEmail(String to, String subject, String text) throws MessagingException {
         try {
             logger.info("Intentando enviar correo de verificación a: {}", to);
-
-            // String htmlContent = templateEngine.process(templateName, context);
+            logger.info("Configuración de correo - Host: {}, Puerto: {}, Usuario: {}",
+                System.getProperty("spring.mail.host", "N/A"),
+                System.getProperty("spring.mail.port", "N/A"),
+                System.getProperty("spring.mail.username", "N/A"));
 
             MimeMessage message = emailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
@@ -39,12 +41,14 @@ public class EmailService {
             helper.setTo(to);
             helper.setSubject(subject);
             helper.setText(text, true);
+            helper.setFrom("onboarding@resend.dev");
 
             emailSender.send(message);
             logger.info("Correo de verificación enviado exitosamente a: {}", to);
 
         } catch (MessagingException e) {
-            logger.error("Error al enviar correo de verificación a: {}", to, e);
+            logger.error("Error de mensajería al enviar correo de verificación a: {}", to, e);
+            logger.error("Causa raíz: {}", e.getCause() != null ? e.getCause().getMessage() : "No disponible");
             throw new MessagingException("Error al enviar correo de verificación: " + e.getMessage(), e);
         } catch (Exception e) {
             logger.error("Error inesperado al enviar correo de verificación a: {}", to, e);
