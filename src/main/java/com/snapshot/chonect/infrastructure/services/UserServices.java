@@ -3,6 +3,7 @@ package com.snapshot.chonect.infrastructure.services;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.snapshot.chonect.api.dto.request.UserPatchRequest;
 import com.snapshot.chonect.api.dto.request.UserUpdateRequest;
 import com.snapshot.chonect.api.dto.response.UserResponse;
 import com.snapshot.chonect.domain.models.UserEntity;
@@ -41,6 +42,32 @@ public class UserServices implements IUserService {
         UserEntity userUpdate = this.userMapper.requestUpdateToEntity(request);
         userUpdate.setId(id);
         return this.userMapper.userEntityToUserResponse(this.userRepository.save(userUpdate));
+    }
+
+    public UserResponse patch(UserPatchRequest request, Long id) {
+        UserEntity existingUser = this.supportService.findById(userRepository, id, "UserEntity");
+
+        // Actualización parcial - solo campos presentes y no vacíos
+        if (request.hasUsername()) {
+            existingUser.setUsername(request.getUsername());
+        }
+        if (request.hasPassword()) {
+            existingUser.setPassword(request.getPassword());
+        }
+        if (request.hasEmail()) {
+            existingUser.setEmail(request.getEmail());
+        }
+        if (request.hasFullName()) {
+            existingUser.setFullName(request.getFullName());
+        }
+        if (request.hasBirthDate()) {
+            existingUser.setBirthDate(request.getBirthDate().toString());
+        }
+        if (request.hasRole()) {
+            existingUser.setRole(request.getRole());
+        }
+
+        return this.userMapper.userEntityToUserResponse(this.userRepository.save(existingUser));
     }
 
     public UserEntity getByEmail(String email) {
