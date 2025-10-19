@@ -1,5 +1,5 @@
 # Multi-stage build optimizado
-FROM maven:3.9.6-eclipse-temurin-17-alpine AS build
+FROM maven:3.9.6-eclipse-temurin-21-alpine AS build
 
 WORKDIR /app
 
@@ -17,7 +17,7 @@ COPY src ./src
 RUN mvn clean package -DskipTests -B
 
 # Etapa de producción con JRE Alpine (más pequeño)
-FROM eclipse-temurin:17-jre-alpine AS runtime
+FROM eclipse-temurin:21-jre-alpine AS runtime
 
 # Crear usuario no-root por seguridad
 RUN addgroup -g 1001 -S appuser && \
