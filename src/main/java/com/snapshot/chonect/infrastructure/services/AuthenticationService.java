@@ -127,28 +127,47 @@ public class AuthenticationService {
     }
 
     public void sendVerificationEmail(UserEntity user) {
-        String subject = "verificacion de cuenta";
+        String subject = "Verificacion de cuenta - Chonect";
         String verificationCode = user.getVerificationCode();
 
-        // esta es una solucion temporal, cuando ya tenga todo pulido la cambio
+        // Versión HTML del mensaje
         String htmlMessage = "<html>"
                 + "<body style=\"font-family: Arial, sans-serif;\">"
                 + "<div style=\"background-color: #f5f5f5; padding: 20px;\">"
-                + "<h2 style=\"color: #333;\">Codigo de verificacion de nuestra app!</h2>"
-                + "<p style=\"font-size: 16px;\">porfavor ingresa el codigo de verificacion antes de continuar:</p>"
+                + "<h2 style=\"color: #333;\">¡Código de verificación de Chonect!</h2>"
+                + "<p style=\"font-size: 16px;\">Por favor ingresa el código de verificación para continuar:</p>"
                 + "<div style=\"background-color: #fff; padding: 20px; border-radius: 5px; box-shadow: 0 0 10px rgba(0,0,0,0.1);\">"
-                + "<h3 style=\"color: #333;\">Codigo de verificacion:</h3>"
+                + "<h3 style=\"color: #333;\">Código de verificación:</h3>"
                 + "<p style=\"font-size: 18px; font-weight: bold; color: #007bff;\">" + verificationCode + "</p>"
                 + "</div>"
                 + "</div>"
                 + "</body>"
                 + "</html>";
 
+        // Versión de texto plano del mensaje
+        String textMessage = "¡Hola!\n\n"
+                + "Gracias por registrarte en Chonect.\n\n"
+                + "Tu código de verificación es: " + verificationCode + "\n\n"
+                + "Por favor ingresa este código en la aplicación para verificar tu cuenta.\n\n"
+                + "Si no solicitaste este registro, puedes ignorar este mensaje.\n\n"
+                + "Saludos,\n"
+                + "El equipo de Chonect";
+
         try {
-            emailService.sendVerificationEmail(user.getEmail(), subject, htmlMessage);
+            emailService.sendVerificationEmail(user.getEmail(), subject, textMessage, htmlMessage);
         } catch (MessagingException e) {
             logger.error("Error de mensajería al enviar correo de verificación a {}: {}", user.getEmail(), e.getMessage(), e);
-            throw new BadRequestException("Error al enviar correo de verificación. Por favor, inténtelo de nuevo más tarde.");
+
+            // Analizar el tipo de error para dar mejor feedback al usuario
+            String errorMessage = analyzeEmailError(e);
+
+            if (errorMessage.contains("SMTP") || errorMessage.contains("conexión")) {
+                throw new BadRequestException("Error de conexión con el servidor de correo. El correo podría enviarse en unos minutos. Si el problema persiste, contacte al soporte.");
+            } else if (errorMessage.contains("crítico") || errorMessage.contains("intentos")) {
+                throw new BadRequestException("Error crítico al enviar correo de verificación. Por favor, contacte al administrador del sistema.");
+            } else {
+                throw new BadRequestException("Error al enviar correo de verificación. Por favor, inténtelo de nuevo más tarde.");
+            }
         } catch (Exception e) {
             logger.error("Error inesperado al enviar correo de verificación a {}: {}", user.getEmail(), e.getMessage(), e);
             throw new BadRequestException("Error interno del servidor. Por favor, contacte al administrador.");
@@ -159,6 +178,26 @@ public class AuthenticationService {
         Random random = new Random();
         int code = random.nextInt(900000) + 100000;
         return String.valueOf(code);
+    }
+
+    // Método para analizar errores de correo y proporcionar información útil
+    private String analyzeEmailError(MessagingException e) {
+        String message = e.getMessage().toLowerCase();
+        String cause = e.getCause() != null ? e.getCause().getMessage().toLowerCase() : "";
+
+        if (message.contains("smtp") || cause.contains("smtp")) {
+            return "Error SMTP";
+        } else if (message.contains("conexión") || message.contains("connection") || cause.contains("connection")) {
+            return "Error de conexión";
+        } else if (message.contains("timeout") || cause.contains("timeout")) {
+            return "Error de tiempo de espera";
+        } else if (message.contains("autenticación") || message.contains("authentication") || cause.contains("authentication")) {
+            return "Error de autenticación";
+        } else if (message.contains("crítico") || message.contains("intentos") || message.contains("todos los intentos")) {
+            return "Error crítico de correo";
+        } else {
+            return "Error general de correo";
+        }
     }
     
     public void deleteUserByEmail(String email) {
