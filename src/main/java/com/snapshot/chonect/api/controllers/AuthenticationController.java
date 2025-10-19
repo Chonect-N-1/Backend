@@ -40,7 +40,8 @@ public class AuthenticationController {
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Usuario registrado exitosamente",
                 content = @Content(schema = @Schema(implementation = UserEntity.class))),
-        @ApiResponse(responseCode = "400", description = "Datos de registro inválidos")
+        @ApiResponse(responseCode = "400", description = "Datos de registro inválidos"),
+        @ApiResponse(responseCode = "409", description = "El email ya está registrado")
     })
     public ResponseEntity<UserEntity> register(@RequestBody RegisterRequest registerUserDto){
         UserEntity registerUser = authenticationService.signup(registerUserDto);
@@ -66,55 +67,44 @@ public class AuthenticationController {
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Cuenta verificada exitosamente",
                 content = @Content(schema = @Schema(implementation = LoginResponse.class))),
-        @ApiResponse(responseCode = "400", description = "Código de verificación inválido")
+        @ApiResponse(responseCode = "400", description = "Código de verificación inválido"),
+        @ApiResponse(responseCode = "404", description = "Usuario no encontrado")
     })
     public ResponseEntity<LoginResponse> verifyUser(@RequestBody VerifyUserDto verifyUserDto){
-        try {
-            authenticationService.verifyUser(verifyUserDto);
+        authenticationService.verifyUser(verifyUserDto);
 
-            // Obtener el usuario verificado para generar el token
-            UserEntity verifiedUser = userServices.getByEmail(verifyUserDto.getEmail());
+        // Obtener el usuario verificado para generar el token
+        UserEntity verifiedUser = userServices.getByEmail(verifyUserDto.getEmail());
 
-            // Generar token JWT
-            String jwt = jwtService.generateToken(verifiedUser);
-            LoginResponse loginResponse = new LoginResponse(jwt, jwtService.getExpirationTime());
+        // Generar token JWT
+        String jwt = jwtService.generateToken(verifiedUser);
+        LoginResponse loginResponse = new LoginResponse(jwt, jwtService.getExpirationTime());
 
-            return ResponseEntity.ok(loginResponse);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(null);
-        }
+        return ResponseEntity.ok(loginResponse);
     }
 
     @PostMapping("/resend")
     @Operation(summary = "Reenviar código de verificación", description = "Reenvía el código de verificación al email del usuario")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Código reenviado exitosamente"),
-        @ApiResponse(responseCode = "400", description = "Error al reenviar código")
+        @ApiResponse(responseCode = "400", description = "Error al reenviar código"),
+        @ApiResponse(responseCode = "404", description = "Usuario no encontrado")
     })
-    public ResponseEntity<?> resendVerificationCode(@RequestParam String email){
-        try {
-            authenticationService.resendVerificationCode(email);
-            return ResponseEntity.ok("Se a re enviado el codigo de verificacion al correo: " + email + "!!");
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Se produjo el error: " + e.getMessage());
-        }
+    public ResponseEntity<String> resendVerificationCode(@RequestParam String email){
+        authenticationService.resendVerificationCode(email);
+        return ResponseEntity.ok("Se ha reenviado el código de verificación al correo: " + email + "!!");
     }
 
     @DeleteMapping("/delete")
     @Operation(summary = "Eliminar usuario", description = "Elimina permanentemente la cuenta de usuario")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Usuario eliminado exitosamente"),
-        @ApiResponse(responseCode = "400", description = "Error al eliminar usuario")
+        @ApiResponse(responseCode = "404", description = "Usuario no encontrado")
     })
     public ResponseEntity<String> deleteUser(@RequestParam String email) {
-        try {
-            // Llama al nuevo método del servicio
-            authenticationService.deleteUserByEmail(email);
-            // Retorna una respuesta HTTP 200 OK con un mensaje de éxito
-            return ResponseEntity.ok("Usuario con email: " + email + " eliminado correctamente.");
-        } catch (Exception e) {
-            // Si el servicio lanza una excepción (ej. usuario no encontrado), se captura aquí
-            return ResponseEntity.badRequest().body("Se produjo el error: " + e.getMessage());
-        }
+        // Llama al nuevo método del servicio
+        authenticationService.deleteUserByEmail(email);
+        // Retorna una respuesta HTTP 200 OK con un mensaje de éxito
+        return ResponseEntity.ok("Usuario con email: " + email + " eliminado correctamente.");
     }
 }
