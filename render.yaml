@@ -4,7 +4,7 @@ services:
     env: java
     # Usar imagen de Docker Hub en lugar de construir
     imageUrl: carrlox/chonect-backend:latest
-    port: 10000
+    port: 8080
     healthCheckPath: /actuator/health
     autoDeploy: false
     envVars:
