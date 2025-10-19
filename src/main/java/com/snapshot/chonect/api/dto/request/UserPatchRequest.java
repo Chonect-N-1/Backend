@@ -1,8 +1,6 @@
 package com.snapshot.chonect.api.dto.request;
 
 import java.time.LocalDate;
-import java.util.Optional;
-
 import com.snapshot.chonect.utils.enums.Role;
 
 import jakarta.validation.constraints.Email;
