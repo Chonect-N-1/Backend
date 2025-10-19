@@ -8,28 +8,23 @@ import java.util.function.Function;
 
 import javax.crypto.SecretKey;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
+
+import com.snapshot.chonect.config.JwtProperties;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 
+import lombok.AllArgsConstructor;
+
 @Service
-// REMOVÍ @AllArgsConstructor aquí
+@AllArgsConstructor
 public class JwtService {
-    
-    @Value("${security.jwt.secret-key}")
-    private String secretKey;
 
-    @Value("${security.jwt.expiration-time}")
-    private Long jwtExpiration;
-
-    // Constructor vacío (Spring lo necesita para @Value)
-    public JwtService() {
-    }
+    private final JwtProperties jwtProperties;
 
     public String extractUsername(String token){
         return extractClaim(token, Claims::getSubject);
@@ -45,11 +40,11 @@ public class JwtService {
     }
 
     public String generateToken(Map<String, Object> extraClaims, UserDetails userDetails) {
-        return buildToken(extraClaims, userDetails, jwtExpiration);
+        return buildToken(extraClaims, userDetails, jwtProperties.getExpirationTime());
     }
 
     public long getExpirationTime() {
-        return jwtExpiration;
+        return jwtProperties.getExpirationTime();
     }
 
     private String buildToken(
@@ -90,7 +85,7 @@ public class JwtService {
     }
 
     private Key getSignInKey() {
-        byte[] keyBytes = Decoders.BASE64.decode(secretKey);
+        byte[] keyBytes = Decoders.BASE64.decode(jwtProperties.getSecretKey());
         return Keys.hmacShaKeyFor(keyBytes);
     }
 }
