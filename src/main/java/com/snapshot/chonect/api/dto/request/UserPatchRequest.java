@@ -1,7 +1,6 @@
 package com.snapshot.chonect.api.dto.request;
 
 import java.time.LocalDate;
-import com.snapshot.chonect.utils.enums.Role;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Past;
@@ -29,13 +28,18 @@ public class UserPatchRequest {
     @Email(message = "el email no es valido")
     private String email;
 
-    @Size(min = 1, max = 100, message = "el nombre completo debe tener entre 1 a 100 caracteres")
-    private String fullName;
+    @Size(min = 1, max = 50, message = "el nombre debe tener entre 1 a 50 caracteres")
+    private String firstName;
+
+    @Size(min = 1, max = 50, message = "el apellido debe tener entre 1 a 50 caracteres")
+    private String lastName;
+
+    private Long countryId;
+
+    private Long languageId;
 
     @Past(message = "la fecha de nacimiento debe ser en el pasado")
     private LocalDate birthDate;
-
-    private Role role;
 
     // Método helper para verificar si un campo está presente y no es null
     public boolean hasUsername() {
@@ -50,15 +54,23 @@ public class UserPatchRequest {
         return email != null && !email.trim().isEmpty();
     }
 
-    public boolean hasFullName() {
-        return fullName != null && !fullName.trim().isEmpty();
+    public boolean hasFirstName() {
+        return firstName != null && !firstName.trim().isEmpty();
+    }
+
+    public boolean hasLastName() {
+        return lastName != null && !lastName.trim().isEmpty();
+    }
+
+    public boolean hasCountryId() {
+        return countryId != null;
+    }
+
+    public boolean hasLanguageId() {
+        return languageId != null;
     }
 
     public boolean hasBirthDate() {
         return birthDate != null;
-    }
-
-    public boolean hasRole() {
-        return role != null;
     }
 }

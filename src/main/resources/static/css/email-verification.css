@@ -1,0 +1,28 @@
+/* Estilos para plantilla de verificación de email */
+.email-container {
+    font-family: Arial, sans-serif;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.email-title {
+    color: #333;
+}
+
+.verification-link {
+    background-color: #007bff;
+    color: white;
+    padding: 10px 20px;
+    text-decoration: none;
+    border-radius: 5px;
+    display: inline-block;
+}
+
+.verification-link:hover {
+    background-color: #0056b3;
+}
+
+.disclaimer {
+    font-size: 12px;
+    color: #666;
+}

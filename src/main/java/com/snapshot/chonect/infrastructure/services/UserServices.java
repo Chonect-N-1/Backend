@@ -6,6 +6,8 @@ import org.springframework.stereotype.Service;
 import com.snapshot.chonect.api.dto.request.UserPatchRequest;
 import com.snapshot.chonect.api.dto.request.UserUpdateRequest;
 import com.snapshot.chonect.api.dto.response.UserResponse;
+import com.snapshot.chonect.domain.models.CountryEntity;
+import com.snapshot.chonect.domain.models.LanguageEntity;
 import com.snapshot.chonect.domain.models.UserEntity;
 import com.snapshot.chonect.domain.repositories.UserRepository;
 import com.snapshot.chonect.infrastructure.abstract_services.IUserService;
@@ -28,6 +30,12 @@ public class UserServices implements IUserService {
 
     @Autowired
     private final SupportService<UserEntity> supportService;
+
+    @Autowired
+    private final CountryService countryService;
+
+    @Autowired
+    private final LanguageService languageService;
 
     @Override
     public UserResponse getById(Long id) {
@@ -57,14 +65,22 @@ public class UserServices implements IUserService {
         if (request.hasEmail()) {
             existingUser.setEmail(request.getEmail());
         }
-        if (request.hasFullName()) {
-            existingUser.setFullName(request.getFullName());
+        if (request.hasFirstName()) {
+            existingUser.setFirstName(request.getFirstName());
+        }
+        if (request.hasLastName()) {
+            existingUser.setLastName(request.getLastName());
+        }
+        if (request.hasCountryId()) {
+            CountryEntity country = countryService.getById(request.getCountryId());
+            existingUser.setCountry(country);
+        }
+        if (request.hasLanguageId()) {
+            LanguageEntity language = languageService.getById(request.getLanguageId());
+            existingUser.setLanguage(language);
         }
         if (request.hasBirthDate()) {
             existingUser.setBirthDate(request.getBirthDate().toString());
-        }
-        if (request.hasRole()) {
-            existingUser.setRole(request.getRole());
         }
 
         return this.userMapper.userEntityToUserResponse(this.userRepository.save(existingUser));

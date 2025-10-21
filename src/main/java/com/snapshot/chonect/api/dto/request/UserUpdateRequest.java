@@ -17,4 +17,6 @@ import lombok.experimental.SuperBuilder;
 public class UserUpdateRequest extends UserRequest {
     @NotNull(message = "el rol es requerido")
     private Role role;
+
+    // Campos adicionales específicos para UserUpdateRequest si es necesario
 }

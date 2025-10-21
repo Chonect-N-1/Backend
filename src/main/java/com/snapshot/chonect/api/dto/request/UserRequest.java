@@ -38,9 +38,13 @@ public class UserRequest {
     @UniqueElements(message = "El email tiene que ser unico")
     private String email;
 
-    @NotBlank(message = "el nombre completo es requerido")
-    @Size(min = 1, max = 100, message = "el nombre completo debe tener entre 1 a 100 caracteres")
-    private String fullName;
+    @NotBlank(message = "el nombre es requerido")
+    @Size(min = 1, max = 50, message = "el nombre debe tener entre 1 a 50 caracteres")
+    private String firstName;
+
+    @NotBlank(message = "el apellido es requerido")
+    @Size(min = 1, max = 50, message = "el apellido debe tener entre 1 a 50 caracteres")
+    private String lastName;
 
     @NotNull(message = "la fecha de nacimiento es requerida")
     @Past(message = "la fecha de nacimiento debe ser en el pasado")

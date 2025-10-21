@@ -9,6 +9,8 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -43,8 +45,11 @@ public class UserEntity implements UserDetails {
     @Column(length = 100, nullable = false, unique = true)
     private String email;
 
-    @Column(length = 100, nullable = true)
-    private String fullName;
+    @Column(length = 50, nullable = true)
+    private String firstName;
+
+    @Column(length = 50, nullable = true)
+    private String lastName;
 
     @Enumerated(EnumType.STRING)
     private Role role;
@@ -60,6 +65,13 @@ public class UserEntity implements UserDetails {
     @Column(name = "verification_expiration")
     private LocalDateTime verificationCodeExpireAt;
 
+    @ManyToOne
+    @JoinColumn(name = "country_id")
+    private CountryEntity country;
+
+    @ManyToOne
+    @JoinColumn(name = "language_id")
+    private LanguageEntity language;
 
     // aqui empiezan temas de seguridad, desde aqui viene lo turbio jajajaj
 

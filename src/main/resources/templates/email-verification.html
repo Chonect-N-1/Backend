@@ -1,23 +1,22 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Verificación de Email</title>
 </head>
 <body>
-    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: #333;">Verificación de Cuenta</h2>
+    <div class="email-container">
+        <h2 class="email-title">Verificación de Cuenta</h2>
         <p>Hola <span th:text="${name}">Usuario</span>,</p>
         <p>Gracias por registrarte. Para completar tu verificación, haz clic en el siguiente enlace:</p>
-        
-        <!-- <a th:href="${verificationUrl}" 
-            style="background-color: #007bff; color: white; padding: 10px 20px; 
-                text-decoration: none; border-radius: 5px; display: inline-block;">
+
+        <a th:href="${verificationUrl}" class="verification-link">
             Verificar Cuenta
-        </a> -->
-        
+        </a>
+
         <p>Si no solicitaste este registro, por favor ignora este mensaje.</p>
-        <p><small>Este enlace expira en 24 horas.</small></p>
+        <p class="disclaimer">Este enlace expira en 24 horas.</p>
     </div>
 </body>
 </html>

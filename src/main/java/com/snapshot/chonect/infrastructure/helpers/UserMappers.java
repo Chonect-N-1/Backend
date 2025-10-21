@@ -19,14 +19,18 @@ public interface UserMappers {
     @Mapping(target = "username", source = "username")
     @Mapping(target = "password", source = "password")
     @Mapping(target = "email", source = "email")
-    @Mapping(target = "fullName", source = "fullName")
+    @Mapping(target = "firstName", source = "firstName")
+    @Mapping(target = "lastName", source = "lastName")
     @Mapping(target = "birthDate", source = "birthDate")
     UserEntity userRequestToUserEntity(UserRequest request);
 
     @Mapping(target = "id", source = "id")
     @Mapping(target = "username", source = "username")
     @Mapping(target = "email", source = "email")
+    @Mapping(target = "firstName", source = "firstName")
+    @Mapping(target = "lastName", source = "lastName")
     @Mapping(target = "role", source = "role")
+    @Mapping(target = "birthDate", source = "birthDate")
     UserResponse userEntityToUserResponse(UserEntity userEntity);
 
     // si alguien ve esto quiero que sepan que no quiero ser muy mamon re haciendo el codigo,
@@ -34,7 +38,8 @@ public interface UserMappers {
 
     @Mapping(target = "username", source = "username")
     @Mapping(target = "password", source = "email")
-    @Mapping(target = "fullName", source = "fullName")
+    @Mapping(target = "firstName", source = "firstName")
+    @Mapping(target = "lastName", source = "lastName")
     @Mapping(target = "birthDate", source = "birthDate")
     @Mapping(target = "role", source = "role")
     UserEntity requestUpdateToEntity(UserUpdateRequest userRequest);

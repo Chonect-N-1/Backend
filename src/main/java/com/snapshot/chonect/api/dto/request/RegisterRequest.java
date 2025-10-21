@@ -31,8 +31,12 @@ public class RegisterRequest {
     @Pattern(regexp="^(?=.*[A-Z])(?=.*[\\d\\W]).{6,}$", message = "La contrasena tiene que tener al menos ~una letra mayuscula ~un caracter especial o numero ~almenos 6 caracteres.")
     private String password;
 
-    @Size(min = 1, max = 100, message = "el nombre de usuario debe tener entre 1 a 100 caracteres")
-    @NotBlank(message = "el nombre de usuario es requerido")
-    private String fullName;
+    @Size(min = 1, max = 50, message = "el nombre debe tener entre 1 a 50 caracteres")
+    @NotBlank(message = "el nombre es requerido")
+    private String firstName;
+
+    @Size(min = 1, max = 50, message = "el apellido debe tener entre 1 a 50 caracteres")
+    @NotBlank(message = "el apellido es requerido")
+    private String lastName;
 
 }
