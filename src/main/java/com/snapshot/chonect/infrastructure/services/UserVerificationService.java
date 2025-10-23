@@ -5,18 +5,12 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.snapshot.chonect.api.dto.request.UserVerificationRequest;
 import com.snapshot.chonect.api.dto.response.UserVerificationResponse;
-import com.snapshot.chonect.domain.models.CountryEntity;
-import com.snapshot.chonect.domain.models.LanguageEntity;
 import com.snapshot.chonect.domain.models.UserEntity;
-import com.snapshot.chonect.domain.repositories.UserRepository;
-import com.snapshot.chonect.infrastructure.services.UserServices;
 import com.snapshot.chonect.utils.VerificationCodeService;
-import com.snapshot.chonect.utils.EmailTemplateService;
 import com.snapshot.chonect.utils.UserValidationService;
 import com.snapshot.chonect.utils.exceptions.BadRequestException;
 import lombok.AllArgsConstructor;
@@ -29,22 +23,7 @@ public class UserVerificationService {
     private final EmailService emailService;
 
     @Autowired
-    private final CountryService countryService;
-
-    @Autowired
-    private final LanguageService languageService;
-
-    @Autowired
-    private final UserRepository userRepository;
-
-    @Autowired
-    private final PasswordEncoder passwordEncoder;
-
-    @Autowired
     private final VerificationCodeService verificationCodeService;
-
-    @Autowired
-    private final EmailTemplateService emailTemplateService;
 
     @Autowired
     private final UserValidationService userValidationService;

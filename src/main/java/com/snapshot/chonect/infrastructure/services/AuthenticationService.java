@@ -2,8 +2,6 @@ package com.snapshot.chonect.infrastructure.services;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -25,16 +23,10 @@ import com.snapshot.chonect.utils.UserValidationService;
 @Service
 public class AuthenticationService {
 
-    private static final Logger logger = LoggerFactory.getLogger(AuthenticationService.class);
-
     private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final EmailService emailService;
     private final VerificationCodeService verificationCodeService;
-    private final EmailTemplateService emailTemplateService;
-    private final UserValidationService userValidationService;
-
     // parece que lombok da error con el auth
     public AuthenticationService(
             UserRepository userRepository,
@@ -47,11 +39,8 @@ public class AuthenticationService {
     ) {
         this.userRepository = userRepository;
         this.authenticationManager = authenticationManager;
-        this.passwordEncoder = passwordEncoder;
         this.emailService = emailService;
         this.verificationCodeService = verificationCodeService;
-        this.emailTemplateService = emailTemplateService;
-        this.userValidationService = userValidationService;
     }
 
 

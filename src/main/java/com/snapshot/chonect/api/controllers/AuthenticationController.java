@@ -8,8 +8,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import io.swagger.v3.oas.annotations.Hidden;
-
 import com.snapshot.chonect.api.dto.request.LoginUserDto;
 import com.snapshot.chonect.api.dto.request.UserCompleteVerificationRequest;
 import com.snapshot.chonect.api.dto.request.UserVerificationRequest;
@@ -19,7 +17,6 @@ import com.snapshot.chonect.api.dto.response.UserVerificationResponse;
 import com.snapshot.chonect.domain.models.UserEntity;
 import com.snapshot.chonect.infrastructure.services.AuthenticationService;
 import com.snapshot.chonect.infrastructure.services.JwtService;
-import com.snapshot.chonect.infrastructure.services.UserServices;
 import com.snapshot.chonect.infrastructure.services.UserVerificationService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -38,7 +35,6 @@ public class AuthenticationController {
     
     private final JwtService jwtService;
     private final AuthenticationService authenticationService;
-    private final UserServices userServices;
     private final UserVerificationService userVerificationService;
 
 

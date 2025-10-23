@@ -15,7 +15,6 @@ import com.snapshot.chonect.infrastructure.abstract_services.IUserService;
 import com.snapshot.chonect.infrastructure.helpers.SupportService;
 import com.snapshot.chonect.infrastructure.helpers.UserMappers;
 import com.snapshot.chonect.utils.VerificationCodeService;
-import com.snapshot.chonect.utils.EmailTemplateService;
 import com.snapshot.chonect.utils.UserValidationService;
 import com.snapshot.chonect.utils.exceptions.BadRequestException;
 import jakarta.transaction.Transactional;
@@ -49,9 +48,6 @@ public class UserServices implements IUserService {
 
     @Autowired
     private final VerificationCodeService verificationCodeService;
-
-    @Autowired
-    private final EmailTemplateService emailTemplateService;
 
     @Autowired
     private final UserValidationService userValidationService;
