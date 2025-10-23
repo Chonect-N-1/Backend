@@ -1,0 +1,26 @@
+package com.snapshot.chonect.infrastructure.services;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
+public class UserVerificationData {
+    private String username;
+    private String email;
+    private String password;
+    private String firstName;
+    private String lastName;
+    private Long countryId;
+    private Long languageId;
+    private LocalDate birthDate;
+    private String verificationCode;
+    private LocalDateTime createdAt;
+    private LocalDateTime expiresAt;
+}

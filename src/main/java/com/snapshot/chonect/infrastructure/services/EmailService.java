@@ -8,6 +8,8 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
+import com.snapshot.chonect.utils.EmailTemplateService;
+import com.snapshot.chonect.utils.exceptions.BadRequestException;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.AllArgsConstructor;
@@ -23,13 +25,36 @@ public class EmailService {
     private static final long RETRY_DELAY_MS = 1000; // 1 segundo
 
     @Autowired
-    private JavaMailSender emailSender;
+    private final JavaMailSender emailSender;
+
+    @Autowired
+    private final EmailTemplateService emailTemplateService;
 
     // private final TemplateEngine templateEngine;
 
     // aqui simplemente cargo toda la info y conecto con el template del email
     public void sendVerificationEmail(String to, String subject, String textContent, String htmlContent) throws MessagingException {
         sendEmailWithRetry(to, subject, textContent, htmlContent, true);
+    }
+
+    // Método centralizado para enviar emails de verificación
+    public void sendVerificationEmail(String email, String firstName, String verificationCode) throws BadRequestException {
+        String subject = emailTemplateService.getVerificationEmailSubject();
+        String htmlMessage = emailTemplateService.generateVerificationEmailHtml(firstName, verificationCode);
+        String textMessage = emailTemplateService.generateVerificationEmailText(firstName, verificationCode);
+        try {
+            sendVerificationEmail(email, subject, textMessage, htmlMessage);
+        } catch (MessagingException e) {
+            logger.error("Error de mensajería al enviar correo de verificación a {}: {}", email, e.getMessage(), e);
+            String errorMessage = analyzeEmailError(e);
+            if (errorMessage.contains("SMTP") || errorMessage.contains("conexión")) {
+                throw new BadRequestException("Error de conexión con el servidor de correo. El correo podría enviarse en unos minutos. Si el problema persiste, contacte al soporte.");
+            } else if (errorMessage.contains("crítico") || errorMessage.contains("intentos")) {
+                throw new BadRequestException("Error crítico al enviar correo de verificación. Por favor, contacte al administrador del sistema.");
+            } else {
+                throw new BadRequestException("Error al enviar correo de verificación. Por favor, inténtelo de nuevo más tarde.");
+            }
+        }
     }
 
     // Método genérico para envío de correos con reintentos
@@ -114,5 +139,25 @@ public class EmailService {
         // - Alertas a sistemas externos
 
         // Por ahora solo logueamos, pero esta estructura permite extensión futura
+    }
+
+    // Método para analizar errores de correo y proporcionar información útil
+    private String analyzeEmailError(MessagingException e) {
+        String message = e.getMessage().toLowerCase();
+        String cause = e.getCause() != null ? e.getCause().getMessage().toLowerCase() : "";
+
+        if (message.contains("smtp") || cause.contains("smtp")) {
+            return "Error SMTP";
+        } else if (message.contains("conexión") || message.contains("connection") || cause.contains("connection")) {
+            return "Error de conexión";
+        } else if (message.contains("timeout") || cause.contains("timeout")) {
+            return "Error de tiempo de espera";
+        } else if (message.contains("autenticación") || message.contains("authentication") || cause.contains("authentication")) {
+            return "Error de autenticación";
+        } else if (message.contains("crítico") || message.contains("intentos") || message.contains("todos los intentos")) {
+            return "Error crítico de correo";
+        } else {
+            return "Error general de correo";
+        }
     }
 }

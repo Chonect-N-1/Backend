@@ -8,14 +8,19 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import io.swagger.v3.oas.annotations.Hidden;
+
 import com.snapshot.chonect.api.dto.request.LoginUserDto;
-import com.snapshot.chonect.api.dto.request.RegisterRequest;
-import com.snapshot.chonect.api.dto.request.VerifyUserDto;
+import com.snapshot.chonect.api.dto.request.UserCompleteVerificationRequest;
+import com.snapshot.chonect.api.dto.request.UserVerificationRequest;
 import com.snapshot.chonect.api.dto.response.LoginResponse;
+import com.snapshot.chonect.api.dto.response.UserCompleteVerificationResponse;
+import com.snapshot.chonect.api.dto.response.UserVerificationResponse;
 import com.snapshot.chonect.domain.models.UserEntity;
 import com.snapshot.chonect.infrastructure.services.AuthenticationService;
 import com.snapshot.chonect.infrastructure.services.JwtService;
 import com.snapshot.chonect.infrastructure.services.UserServices;
+import com.snapshot.chonect.infrastructure.services.UserVerificationService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -34,18 +39,21 @@ public class AuthenticationController {
     private final JwtService jwtService;
     private final AuthenticationService authenticationService;
     private final UserServices userServices;
+    private final UserVerificationService userVerificationService;
 
-    @PostMapping("/signup")
-    @Operation(summary = "Registrar nuevo usuario", description = "Crea una nueva cuenta de usuario en el sistema")
+
+
+    @PostMapping("/initiate-verification")
+    @Operation(summary = "Iniciar verificación de usuario", description = "Inicia el proceso de verificación enviando código por email")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Usuario registrado exitosamente",
-                content = @Content(schema = @Schema(implementation = UserEntity.class))),
-        @ApiResponse(responseCode = "400", description = "Datos de registro inválidos"),
-        @ApiResponse(responseCode = "409", description = "El email ya está registrado")
+        @ApiResponse(responseCode = "200", description = "Código de verificación enviado exitosamente",
+                content = @Content(schema = @Schema(implementation = UserVerificationResponse.class))),
+        @ApiResponse(responseCode = "400", description = "Datos de verificación inválidos"),
+        @ApiResponse(responseCode = "409", description = "El email o username ya está registrado")
     })
-    public ResponseEntity<UserEntity> register(@RequestBody RegisterRequest registerUserDto){
-        UserEntity registerUser = authenticationService.signup(registerUserDto);
-        return ResponseEntity.ok(registerUser);
+    public ResponseEntity<UserVerificationResponse> initiateVerification(@RequestBody UserVerificationRequest request) {
+        UserVerificationResponse response = userVerificationService.initiateVerification(request);
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/login")
@@ -62,26 +70,7 @@ public class AuthenticationController {
         return ResponseEntity.ok(loginResponse);
     }
 
-    @PostMapping("/verify")
-    @Operation(summary = "Verificar cuenta", description = "Verifica la cuenta de usuario mediante código de verificación y devuelve token JWT")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Cuenta verificada exitosamente",
-                content = @Content(schema = @Schema(implementation = LoginResponse.class))),
-        @ApiResponse(responseCode = "400", description = "Código de verificación inválido"),
-        @ApiResponse(responseCode = "404", description = "Usuario no encontrado")
-    })
-    public ResponseEntity<LoginResponse> verifyUser(@RequestBody VerifyUserDto verifyUserDto){
-        authenticationService.verifyUser(verifyUserDto);
 
-        // Obtener el usuario verificado para generar el token
-        UserEntity verifiedUser = userServices.getByEmail(verifyUserDto.getEmail());
-
-        // Generar token JWT
-        String jwt = jwtService.generateToken(verifiedUser);
-        LoginResponse loginResponse = new LoginResponse(jwt, jwtService.getExpirationTime());
-
-        return ResponseEntity.ok(loginResponse);
-    }
 
     @PostMapping("/resend")
     @Operation(summary = "Reenviar código de verificación", description = "Reenvía el código de verificación al email del usuario")
@@ -106,5 +95,32 @@ public class AuthenticationController {
         authenticationService.deleteUserByEmail(email);
         // Retorna una respuesta HTTP 200 OK con un mensaje de éxito
         return ResponseEntity.ok("Usuario con email: " + email + " eliminado correctamente.");
+    }
+
+    @PostMapping("/verify-user")
+    @Operation(summary = "Completar verificación de usuario", description = "Completa la verificación de un usuario creado con PATCH y devuelve token JWT")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Usuario verificado y cuenta creada exitosamente",
+                content = @Content(schema = @Schema(implementation = UserCompleteVerificationResponse.class))),
+        @ApiResponse(responseCode = "400", description = "Código de verificación inválido o expirado"),
+        @ApiResponse(responseCode = "404", description = "No se encontraron datos de verificación")
+    })
+    public ResponseEntity<UserCompleteVerificationResponse> verifyUserAccount(@RequestBody UserCompleteVerificationRequest request) {
+        // Completar verificación y crear usuario real
+        UserEntity newUser = userVerificationService.completeVerification(request.getEmail(), request.getVerificationCode());
+
+        // Generar token JWT para el usuario recién creado
+        String jwt = jwtService.generateToken(newUser);
+        // Crear respuesta completa
+        UserCompleteVerificationResponse response = UserCompleteVerificationResponse.builder()
+                .message("Cuenta verificada y creada exitosamente")
+                .userId(newUser.getId())
+                .username(newUser.getUsername())
+                .email(newUser.getEmail())
+                .token(jwt)
+                .expiresIn(jwtService.getExpirationTime())
+                .build();
+
+        return ResponseEntity.ok(response);
     }
 }
