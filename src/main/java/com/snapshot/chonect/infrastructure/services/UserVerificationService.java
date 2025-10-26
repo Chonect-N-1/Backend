@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.snapshot.chonect.api.dto.request.UserVerificationRequest;
+import com.snapshot.chonect.api.dto.request.UserVerificationUpdateRequest;
 import com.snapshot.chonect.api.dto.response.UserVerificationResponse;
 import com.snapshot.chonect.domain.models.UserEntity;
 import com.snapshot.chonect.utils.VerificationCodeService;
@@ -52,6 +53,7 @@ public class UserVerificationService {
                 .countryId(request.getCountryId())
                 .languageId(request.getLanguageId())
                 .birthDate(request.getBirthDate())
+                .customerType(request.getCustomerType())
                 .verificationCode(verificationCode)
                 .createdAt(LocalDateTime.now())
                 .expiresAt(LocalDateTime.now().plusMinutes(15))
@@ -106,6 +108,7 @@ public class UserVerificationService {
                 verificationData.getBirthDate() != null ? verificationData.getBirthDate().toString() : null,
                 true,
                 com.snapshot.chonect.utils.enums.Role.CUSTOMER,
+                verificationData.getCustomerType(),
                 null,
                 null
         );
@@ -115,6 +118,20 @@ public class UserVerificationService {
 
         // Retornar usuario creado
         return savedUser;
+    }
+
+    public void updateVerificationData(UserVerificationUpdateRequest request) {
+        UserVerificationData verificationData = pendingVerifications.get(request.getEmail());
+
+        if (verificationData == null) {
+            throw new RuntimeException("No se encontraron datos de verificación para este email");
+        }
+
+        // Actualizar el tipo de usuario
+        verificationData.setCustomerType(request.getCustomerType());
+
+        // Guardar los cambios
+        pendingVerifications.put(request.getEmail(), verificationData);
     }
 
     // Método para limpiar verificaciones expiradas

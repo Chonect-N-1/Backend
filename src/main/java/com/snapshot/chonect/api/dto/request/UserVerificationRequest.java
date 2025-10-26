@@ -2,6 +2,8 @@ package com.snapshot.chonect.api.dto.request;
 
 import java.time.LocalDate;
 
+import com.snapshot.chonect.utils.enums.CustomerType;
+
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -50,4 +52,7 @@ public class UserVerificationRequest {
     private Long languageId;
 
     private LocalDate birthDate;
+
+    @NotNull(message = "el tipo de usuario es requerido")
+    private CustomerType customerType;
 }

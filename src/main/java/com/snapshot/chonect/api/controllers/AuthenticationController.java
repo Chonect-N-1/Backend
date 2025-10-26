@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.snapshot.chonect.api.dto.request.LoginUserDto;
 import com.snapshot.chonect.api.dto.request.UserCompleteVerificationRequest;
 import com.snapshot.chonect.api.dto.request.UserVerificationRequest;
+import com.snapshot.chonect.api.dto.request.UserVerificationUpdateRequest;
 import com.snapshot.chonect.api.dto.response.LoginResponse;
 import com.snapshot.chonect.api.dto.response.UserCompleteVerificationResponse;
 import com.snapshot.chonect.api.dto.response.UserVerificationResponse;
@@ -50,6 +51,17 @@ public class AuthenticationController {
     public ResponseEntity<UserVerificationResponse> initiateVerification(@RequestBody UserVerificationRequest request) {
         UserVerificationResponse response = userVerificationService.initiateVerification(request);
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/update-verification")
+    @Operation(summary = "Actualizar datos de verificación", description = "Actualiza el tipo de usuario en los datos temporales de verificación")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Datos actualizados exitosamente"),
+        @ApiResponse(responseCode = "404", description = "No se encontraron datos de verificación para este email")
+    })
+    public ResponseEntity<String> updateVerification(@RequestBody UserVerificationUpdateRequest request) {
+        userVerificationService.updateVerificationData(request);
+        return ResponseEntity.ok("Datos de verificación actualizados exitosamente para el email: " + request.getEmail());
     }
 
     @PostMapping("/login")

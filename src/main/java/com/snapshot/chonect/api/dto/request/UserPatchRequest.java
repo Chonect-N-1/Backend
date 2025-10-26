@@ -2,6 +2,8 @@ package com.snapshot.chonect.api.dto.request;
 
 import java.time.LocalDate;
 
+import com.snapshot.chonect.utils.enums.CustomerType;
+
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Past;
@@ -44,6 +46,8 @@ public class UserPatchRequest {
     @Past(message = "la fecha de nacimiento debe ser en el pasado")
     private LocalDate birthDate;
 
+    private CustomerType customerType;
+
     // Método helper para verificar si un campo está presente y no es null
     public boolean hasUsername() {
         return username != null && !username.trim().isEmpty();
@@ -75,5 +79,9 @@ public class UserPatchRequest {
 
     public boolean hasBirthDate() {
         return birthDate != null;
+    }
+
+    public boolean hasCustomerType() {
+        return customerType != null;
     }
 }

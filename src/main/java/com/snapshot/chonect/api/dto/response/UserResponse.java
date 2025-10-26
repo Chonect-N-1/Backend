@@ -1,6 +1,7 @@
 package com.snapshot.chonect.api.dto.response;
 
 import com.snapshot.chonect.utils.enums.Role;
+import com.snapshot.chonect.utils.enums.CustomerType;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -18,5 +19,6 @@ public class UserResponse {
     private String firstName;
     private String lastName;
     private Role role;
+    private CustomerType customerType;
     private String birthDate;
 }

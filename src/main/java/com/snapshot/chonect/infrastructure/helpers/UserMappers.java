@@ -30,6 +30,7 @@ public interface UserMappers {
     @Mapping(target = "firstName", source = "firstName")
     @Mapping(target = "lastName", source = "lastName")
     @Mapping(target = "role", source = "role")
+    @Mapping(target = "customerType", source = "customerType")
     @Mapping(target = "birthDate", source = "birthDate")
     UserResponse userEntityToUserResponse(UserEntity userEntity);
 

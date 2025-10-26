@@ -11,6 +11,7 @@ import com.snapshot.chonect.domain.models.CountryEntity;
 import com.snapshot.chonect.domain.models.LanguageEntity;
 import com.snapshot.chonect.domain.models.UserEntity;
 import com.snapshot.chonect.domain.repositories.UserRepository;
+import com.snapshot.chonect.utils.enums.CustomerType;
 import com.snapshot.chonect.infrastructure.abstract_services.IUserService;
 import com.snapshot.chonect.infrastructure.helpers.SupportService;
 import com.snapshot.chonect.infrastructure.helpers.UserMappers;
@@ -106,6 +107,9 @@ public class UserServices implements IUserService {
         if (request.hasBirthDate()) {
             existingUser.setBirthDate(request.getBirthDate().toString());
         }
+        if (request.hasCustomerType()) {
+            existingUser.setCustomerType(request.getCustomerType());
+        }
 
         return this.userMapper.userEntityToUserResponse(this.userRepository.save(existingUser));
     }
@@ -134,6 +138,7 @@ public class UserServices implements IUserService {
                 request.getBirthDate() != null ? request.getBirthDate().toString() : null,
                 false,
                 com.snapshot.chonect.utils.enums.Role.CUSTOMER,
+                request.getCustomerType(),
                 verificationCode,
                 expireAt
         );
@@ -148,7 +153,7 @@ public class UserServices implements IUserService {
         return this.userMapper.userEntityToUserResponse(savedUser);
     }
 
-    public UserEntity createUserFromData(String username, String email, String password, String firstName, String lastName, Long countryId, Long languageId, String birthDate, boolean enabled, com.snapshot.chonect.utils.enums.Role role, String verificationCode, java.time.LocalDateTime verificationCodeExpireAt) {
+    public UserEntity createUserFromData(String username, String email, String password, String firstName, String lastName, Long countryId, Long languageId, String birthDate, boolean enabled, com.snapshot.chonect.utils.enums.Role role, CustomerType customerType, String verificationCode, java.time.LocalDateTime verificationCodeExpireAt) {
         UserEntity newUser = UserEntity.builder()
                 .username(username)
                 .email(email)
@@ -157,6 +162,7 @@ public class UserServices implements IUserService {
                 .lastName(lastName)
                 .enabled(enabled)
                 .role(role)
+                .customerType(customerType)
                 .verificationCode(verificationCode)
                 .verificationCodeExpireAt(verificationCodeExpireAt)
                 .build();

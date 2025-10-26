@@ -2,6 +2,9 @@ package com.snapshot.chonect.infrastructure.services;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+
+import com.snapshot.chonect.utils.enums.CustomerType;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -20,6 +23,7 @@ public class UserVerificationData {
     private Long countryId;
     private Long languageId;
     private LocalDate birthDate;
+    private CustomerType customerType;
     private String verificationCode;
     private LocalDateTime createdAt;
     private LocalDateTime expiresAt;

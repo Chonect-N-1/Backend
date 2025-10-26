@@ -1,6 +1,7 @@
 package com.snapshot.chonect.domain.models;
 
 import com.snapshot.chonect.utils.enums.Role;
+import com.snapshot.chonect.utils.enums.CustomerType;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -53,6 +54,9 @@ public class UserEntity implements UserDetails {
 
     @Enumerated(EnumType.STRING)
     private Role role;
+
+    @Enumerated(EnumType.STRING)
+    private CustomerType customerType;
 
     // @Column(nullable = true)
     private String birthDate;
