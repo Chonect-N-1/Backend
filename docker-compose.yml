@@ -7,11 +7,12 @@ services:
       - "8082:8082"
     environment:
       - SPRING_PROFILES_ACTIVE=prod
-      - SPRING_DATASOURCE_URL=jdbc:mysql://crossover.proxy.rlwy.net:16755/railway
+      - SPRING_DATASOURCE_URL=jdbc:mysql://crossover.proxy.rlwy.net:19982/railway
       - SPRING_DATASOURCE_USERNAME=root
-      - SPRING_DATASOURCE_PASSWORD=UHHTHmYdBNRdADMpLpcrDSMVhDBwJfCE
+      - SPRING_DATASOURCE_PASSWORD=YsWIygCTdeUtaunctyRdFLxZuCBTfaXd
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update
       - SPRING_JPA_DATABASE_PLATFORM=org.hibernate.dialect.MySQLDialect
+      - RESEND_API_KEY=re_Sv3QiaGU_3GqxUm32zVA4W1M97TJSrgUe
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8082/actuator/health"]

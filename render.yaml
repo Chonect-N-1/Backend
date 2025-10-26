@@ -20,18 +20,6 @@ services:
         value: update
       - key: SPRING_JPA_DATABASE_PLATFORM
         value: org.hibernate.dialect.MySQLDialect
-      # Variables para correo (Resend)
-      - key: SPRING_MAIL_HOST
-        value: smtp.resend.com
-      - key: SPRING_MAIL_PORT
-        value: "587"
-      - key: SPRING_MAIL_USERNAME
-        value: resend
-      - key: SPRING_MAIL_PASSWORD
+      # Variables para correo (Resend API)
+      - key: RESEND_API_KEY
         value: re_Sv3QiaGU_3GqxUm32zVA4W1M97TJSrgUe
-      - key: SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH
-        value: "true"
-      - key: SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE
-        value: "true"
-      - key: SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_REQUIRED
-        value: "true"
