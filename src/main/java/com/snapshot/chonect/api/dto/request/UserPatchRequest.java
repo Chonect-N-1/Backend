@@ -47,6 +47,7 @@ public class UserPatchRequest {
     private LocalDate birthDate;
 
     private CustomerType customerType;
+    private String termsVersion;
 
     // Método helper para verificar si un campo está presente y no es null
     public boolean hasUsername() {
@@ -83,5 +84,9 @@ public class UserPatchRequest {
 
     public boolean hasCustomerType() {
         return customerType != null;
+    }
+
+    public boolean hasTermsVersion() {
+        return termsVersion != null && !termsVersion.trim().isEmpty();
     }
 }

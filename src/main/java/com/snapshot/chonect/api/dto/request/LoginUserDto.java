@@ -9,7 +9,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class LoginUserDto {
-    private String search;
+    private String email;
 
     @Size(min = 6, max = 100, message = "la contraseña debe tener entre 6 a 100 caracteres")
     @NotBlank(message = "la contraseña es requerida")

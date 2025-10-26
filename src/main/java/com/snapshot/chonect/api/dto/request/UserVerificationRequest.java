@@ -2,6 +2,7 @@ package com.snapshot.chonect.api.dto.request;
 
 import java.time.LocalDate;
 
+import com.snapshot.chonect.api.validation.MinAge;
 import com.snapshot.chonect.utils.enums.CustomerType;
 
 import jakarta.validation.constraints.Email;
@@ -51,8 +52,22 @@ public class UserVerificationRequest {
     @Min(value = 1, message = "el ID del idioma debe ser mayor a 0")
     private Long languageId;
 
+    @NotNull(message = "la fecha de nacimiento es requerida")
+    @MinAge(16)
     private LocalDate birthDate;
 
     @NotNull(message = "el tipo de usuario es requerido")
     private CustomerType customerType;
+
+    @NotNull(message = "debes aceptar el tratado de datos personales")
+    private Boolean acceptDataTreatment;
+
+    @NotNull(message = "debes aceptar el tratado de libre comercio")
+    private Boolean acceptFreeTrade;
+
+    @NotNull(message = "debes aceptar el tratado de wakanda de la constitución 12921 de marvel")
+    private Boolean acceptWakandaConstitution;
+
+    @NotNull(message = "la versión de términos es requerida")
+    private String termsVersion;
 }

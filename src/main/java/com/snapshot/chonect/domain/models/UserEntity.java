@@ -58,6 +58,9 @@ public class UserEntity implements UserDetails {
     @Enumerated(EnumType.STRING)
     private CustomerType customerType;
 
+    @Column(name = "terms_version")
+    private String termsVersion;
+
     // @Column(nullable = true)
     private String birthDate;
 

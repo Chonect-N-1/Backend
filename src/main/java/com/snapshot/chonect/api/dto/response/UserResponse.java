@@ -20,5 +20,6 @@ public class UserResponse {
     private String lastName;
     private Role role;
     private CustomerType customerType;
+    private String termsVersion;
     private String birthDate;
 }

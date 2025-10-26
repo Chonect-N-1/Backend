@@ -43,6 +43,13 @@ public class UserVerificationService {
         // Generar código de verificación
         String verificationCode = verificationCodeService.generateVerificationCode();
 
+        // Validar términos
+        if (!Boolean.TRUE.equals(request.getAcceptDataTreatment()) ||
+            !Boolean.TRUE.equals(request.getAcceptFreeTrade()) ||
+            !Boolean.TRUE.equals(request.getAcceptWakandaConstitution())) {
+            throw new BadRequestException("Debes aceptar todos los términos y condiciones");
+        }
+
         // Crear datos de verificación
         UserVerificationData verificationData = UserVerificationData.builder()
                 .username(request.getUsername())
@@ -54,6 +61,10 @@ public class UserVerificationService {
                 .languageId(request.getLanguageId())
                 .birthDate(request.getBirthDate())
                 .customerType(request.getCustomerType())
+                .acceptDataTreatment(request.getAcceptDataTreatment())
+                .acceptFreeTrade(request.getAcceptFreeTrade())
+                .acceptWakandaConstitution(request.getAcceptWakandaConstitution())
+                .termsVersion(request.getTermsVersion())
                 .verificationCode(verificationCode)
                 .createdAt(LocalDateTime.now())
                 .expiresAt(LocalDateTime.now().plusMinutes(15))
@@ -109,6 +120,7 @@ public class UserVerificationService {
                 true,
                 com.snapshot.chonect.utils.enums.Role.CUSTOMER,
                 verificationData.getCustomerType(),
+                verificationData.getTermsVersion(),
                 null,
                 null
         );

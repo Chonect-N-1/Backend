@@ -24,6 +24,10 @@ public class UserVerificationData {
     private Long languageId;
     private LocalDate birthDate;
     private CustomerType customerType;
+    private Boolean acceptDataTreatment;
+    private Boolean acceptFreeTrade;
+    private Boolean acceptWakandaConstitution;
+    private String termsVersion;
     private String verificationCode;
     private LocalDateTime createdAt;
     private LocalDateTime expiresAt;

@@ -46,13 +46,13 @@ public class AuthenticationService {
 
 
     public UserEntity authenticate(LoginUserDto input) {
-        UserEntity user = (UserEntity) this.userRepository.findByUsernameOrEmail(input.getSearch(), input.getSearch())
+        UserEntity user = (UserEntity) this.userRepository.findByUsernameOrEmail(input.getEmail(), input.getEmail())
                 .orElseThrow(() -> new BadRequestException(ErrorMessages.nameNotFound("Usuario")));
         if (!user.isEnabled()) {
             throw new UnauthorizedException(ErrorMessages.cuentaNotVerificate("Usuario"));
         } else {
             this.authenticationManager
-                    .authenticate(new UsernamePasswordAuthenticationToken(input.getSearch(), input.getPassword()));
+                    .authenticate(new UsernamePasswordAuthenticationToken(input.getEmail(), input.getPassword()));
             return user;
         }
     }

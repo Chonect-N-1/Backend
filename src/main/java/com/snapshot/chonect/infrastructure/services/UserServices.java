@@ -110,6 +110,9 @@ public class UserServices implements IUserService {
         if (request.hasCustomerType()) {
             existingUser.setCustomerType(request.getCustomerType());
         }
+        if (request.hasTermsVersion()) {
+            existingUser.setTermsVersion(request.getTermsVersion());
+        }
 
         return this.userMapper.userEntityToUserResponse(this.userRepository.save(existingUser));
     }
@@ -139,6 +142,7 @@ public class UserServices implements IUserService {
                 false,
                 com.snapshot.chonect.utils.enums.Role.CUSTOMER,
                 request.getCustomerType(),
+                request.getTermsVersion() != null ? request.getTermsVersion() : "1.0",
                 verificationCode,
                 expireAt
         );
@@ -153,7 +157,7 @@ public class UserServices implements IUserService {
         return this.userMapper.userEntityToUserResponse(savedUser);
     }
 
-    public UserEntity createUserFromData(String username, String email, String password, String firstName, String lastName, Long countryId, Long languageId, String birthDate, boolean enabled, com.snapshot.chonect.utils.enums.Role role, CustomerType customerType, String verificationCode, java.time.LocalDateTime verificationCodeExpireAt) {
+    public UserEntity createUserFromData(String username, String email, String password, String firstName, String lastName, Long countryId, Long languageId, String birthDate, boolean enabled, com.snapshot.chonect.utils.enums.Role role, CustomerType customerType, String termsVersion, String verificationCode, java.time.LocalDateTime verificationCodeExpireAt) {
         UserEntity newUser = UserEntity.builder()
                 .username(username)
                 .email(email)
@@ -163,6 +167,7 @@ public class UserServices implements IUserService {
                 .enabled(enabled)
                 .role(role)
                 .customerType(customerType)
+                .termsVersion(termsVersion)
                 .verificationCode(verificationCode)
                 .verificationCodeExpireAt(verificationCodeExpireAt)
                 .build();
