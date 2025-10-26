@@ -8,7 +8,11 @@ import com.snapshot.chonect.utils.exceptions.BadRequestException;
 @Service
 public class UserValidationService {
 
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
+
+    public UserValidationService(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
 
     /**
      * Valida que el email no esté registrado en el sistema.

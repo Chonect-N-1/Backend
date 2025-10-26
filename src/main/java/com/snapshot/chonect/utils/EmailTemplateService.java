@@ -7,7 +7,11 @@ import org.thymeleaf.context.Context;
 @Service
 public class EmailTemplateService {
 
-    private TemplateEngine templateEngine;
+    private final TemplateEngine templateEngine;
+
+    public EmailTemplateService(TemplateEngine templateEngine) {
+        this.templateEngine = templateEngine;
+    }
 
     /**
      * Genera el contenido HTML para el email de verificación usando Thymeleaf.

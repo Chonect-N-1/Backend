@@ -17,7 +17,9 @@ public class ConnectionEntity {
     private String fromElementId;
     private String toElementId;
     private String actionType;
+    @Column(name = "order_num")
     private Integer orderNum;
     private Integer delay;
+    @Column(name = "is_parallel")
     private Boolean isParallel;
 }
