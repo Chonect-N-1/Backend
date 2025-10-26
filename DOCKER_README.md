@@ -4,12 +4,14 @@ Este proyecto incluye configuración completa de Docker para facilitar el despli
 
 ## 📋 Prerrequisitos
 
-### Para desarrollo local:
+### Para desarrollo local
+
 - Docker instalado
 - Docker Compose instalado
 - Conexión a internet (para descargar imágenes base)
 
-### Para Render:
+### Para Render
+
 - Cuenta en [Render](https://render.com)
 - Base de datos MySQL en Railway
 - Archivo `.env` con las credenciales de la base de datos
@@ -31,6 +33,7 @@ Este proyecto incluye configuración completa de Docker para facilitar el despli
    - Usa la configuración de `render.yaml`
 
 2. **Configurar variables de entorno en Render**:
+
    ```bash
    SPRING_PROFILES_ACTIVE=prod
    SPRING_DATASOURCE_URL=jdbc:mysql://crossover.proxy.rlwy.net:16755/railway
@@ -65,10 +68,10 @@ docker-compose up -d
 
 Una vez desplegada, la aplicación estará disponible en:
 
-- **Aplicación principal**: http://localhost:8082
-- **Swagger UI**: http://localhost:8082/swagger-ui.html
-- **GraphQL Playground**: http://localhost:8082/graphiql
-- **Estado de salud**: http://localhost:8082/actuator/health
+- **Aplicación principal**: <http://localhost:8082>
+- **Swagger UI**: <http://localhost:8082/swagger-ui.html>
+- **GraphQL Playground**: <http://localhost:8082/graphiql>
+- **Estado de salud**: <http://localhost:8082/actuator/health>
 
 ## 📋 Comandos útiles
 
@@ -121,6 +124,7 @@ environment:
 ## 🔍 Solución de problemas
 
 ### Problema: Puerto ya en uso
+
 ```bash
 # Ver qué proceso usa el puerto 8082
 netstat -ano | findstr :8082
@@ -130,11 +134,13 @@ netstat -ano | findstr :8082
 ```
 
 ### Problema: Error de conexión a la base de datos
+
 1. Verificar que las credenciales de Railway sean correctas
 2. Verificar que la base de datos esté accesible desde tu IP
 3. Revisar los logs: `docker-compose logs -f`
 
 ### Problema: La aplicación no inicia
+
 ```bash
 # Ver logs detallados
 docker-compose logs -f chonect-backend
@@ -186,6 +192,7 @@ docker-compose down --rmi all
 ### Paso 1: Preparar el repositorio
 
 1. **Sube tu código a GitHub**:
+
    ```bash
    git add .
    git commit -m "Add Docker configuration for Render deployment"
@@ -234,7 +241,7 @@ Ve a tu servicio en Render y agrega estas variables de entorno:
 - **Health Check**: `https://tu-app.onrender.com/actuator/health`
 - **Swagger UI**: `https://tu-app.onrender.com/swagger-ui.html`
 
-### Características de Render:
+### Características de Render
 
 ✅ **Despliegue automático**: Se activa con cada push a main
 ✅ **Base de datos externa**: Compatible con Railway MySQL
@@ -243,7 +250,7 @@ Ve a tu servicio en Render y agrega estas variables de entorno:
 ✅ **SSL automático**: Certificados incluidos
 ✅ **Dominio personalizado**: Opcional
 
-### Comandos útiles en Render:
+### Comandos útiles en Render
 
 ```bash
 # Ver logs en Render Dashboard
@@ -251,7 +258,7 @@ Ve a tu servicio en Render y agrega estas variables de entorno:
 # Monitoreo incluido en el dashboard
 ```
 
-### Solución de problemas en Render:
+### Solución de problemas en Render
 
 1. **Error de conexión a BD**:
    - Verifica las credenciales en Railway

@@ -12,6 +12,7 @@ public class EmailConfiguration {
     private String apiKey;
 
     public EmailConfiguration() {
+        // Constructor por defecto para inyección de dependencias de Spring.
     }
 
     @Bean

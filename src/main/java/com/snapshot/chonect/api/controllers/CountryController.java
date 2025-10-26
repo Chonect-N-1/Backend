@@ -2,7 +2,6 @@ package com.snapshot.chonect.api.controllers;
 
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -16,7 +15,6 @@ import com.snapshot.chonect.infrastructure.services.CountryService;
 @RequestMapping(path = "/api/v1/countries")
 public class CountryController {
 
-    @Autowired
     private final CountryService countryService;
 
     public CountryController(CountryService countryService) {

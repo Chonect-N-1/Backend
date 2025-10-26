@@ -1,8 +1,8 @@
-package com.snapshot.chonect.api.controllers.Basic_controller;
+package com.snapshot.chonect.api.controllers.basic_controller;
 
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-public interface BasicController<RESPONSE, REQUEST, UPDATEREQUEST> extends
-                GetByIdController<RESPONSE> {
+public interface BasicController<T> extends
+                GetByIdController<T> {
 }

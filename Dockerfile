@@ -42,6 +42,11 @@ ENV PORT=8080
 ENV SPRING_PROFILES_ACTIVE=prod
 ENV JAVA_OPTS="-Xmx512m -Xms256m"
 
+# Variables de entorno para JWT (se sobreescribirán por Render)
+ENV SECURITY_JWT_EXPIRATION_TIME=3600000
+ENV SPRING_JPA_HIBERNATE_DDL_AUTO=update
+ENV SPRING_JPA_DATABASE_PLATFORM=org.hibernate.dialect.MySQLDialect
+
 # Cambiar propietario de archivos
 RUN chown -R appuser:appuser /app
 

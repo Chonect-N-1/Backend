@@ -4,7 +4,6 @@ import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.snapshot.chonect.api.dto.request.UserVerificationRequest;
@@ -14,22 +13,21 @@ import com.snapshot.chonect.domain.models.UserEntity;
 import com.snapshot.chonect.utils.VerificationCodeService;
 import com.snapshot.chonect.utils.UserValidationService;
 import com.snapshot.chonect.utils.exceptions.BadRequestException;
+import com.snapshot.chonect.utils.exceptions.VerificationNotFoundException;
+import com.snapshot.chonect.utils.exceptions.VerificationExpiredException;
+import com.snapshot.chonect.utils.exceptions.InvalidVerificationCodeException;
 import lombok.AllArgsConstructor;
 
 @Service
 @AllArgsConstructor
 public class UserVerificationService {
 
-    @Autowired
     private final EmailService emailService;
 
-    @Autowired
     private final VerificationCodeService verificationCodeService;
 
-    @Autowired
     private final UserValidationService userValidationService;
 
-    @Autowired
     private final UserServices userServices;
 
     // Cache temporal para datos de usuarios no verificados
@@ -74,11 +72,7 @@ public class UserVerificationService {
         pendingVerifications.put(request.getEmail(), verificationData);
 
         // Enviar email con código de verificación
-        try {
-            emailService.sendVerificationEmail(request.getEmail(), request.getFirstName(), verificationCode);
-        } catch (BadRequestException e) {
-            throw e;
-        }
+        emailService.sendVerificationEmail(request.getEmail(), request.getFirstName(), verificationCode);
 
         return UserVerificationResponse.builder()
                 .message("Datos recibidos. Revisa tu email para verificar la cuenta.")
@@ -93,37 +87,38 @@ public class UserVerificationService {
         UserVerificationData verificationData = pendingVerifications.get(email);
 
         if (verificationData == null) {
-            throw new RuntimeException("No se encontraron datos de verificación para este email");
+            throw new VerificationNotFoundException("No se encontraron datos de verificación para este email");
         }
 
         // Verificar que no haya expirado
         if (LocalDateTime.now().isAfter(verificationData.getExpiresAt())) {
             pendingVerifications.remove(email);
-            throw new RuntimeException("El código de verificación ha expirado");
+            throw new VerificationExpiredException("El código de verificación ha expirado");
         }
 
         // Verificar código
         if (!verificationData.getVerificationCode().equals(verificationCode)) {
-            throw new RuntimeException("Código de verificación inválido");
+            throw new InvalidVerificationCodeException("Código de verificación inválido");
         }
 
         // Crear usuario real en base de datos usando el método helper
-        UserEntity savedUser = userServices.createUserFromData(
-                verificationData.getUsername(),
-                verificationData.getEmail(),
-                verificationData.getPassword(),
-                verificationData.getFirstName(),
-                verificationData.getLastName(),
-                verificationData.getCountryId(),
-                verificationData.getLanguageId(),
-                verificationData.getBirthDate() != null ? verificationData.getBirthDate().toString() : null,
-                true,
-                com.snapshot.chonect.utils.enums.Role.CUSTOMER,
-                verificationData.getCustomerType(),
-                verificationData.getTermsVersion(),
-                null,
-                null
-        );
+        UserServices.UserCreationData creationData = UserServices.UserCreationData.builder()
+                .username(verificationData.getUsername())
+                .email(verificationData.getEmail())
+                .password(verificationData.getPassword())
+                .firstName(verificationData.getFirstName())
+                .lastName(verificationData.getLastName())
+                .countryId(verificationData.getCountryId())
+                .languageId(verificationData.getLanguageId())
+                .birthDate(verificationData.getBirthDate() != null ? verificationData.getBirthDate().toString() : null)
+                .enabled(true)
+                .role(com.snapshot.chonect.utils.enums.Role.CUSTOMER)
+                .customerType(verificationData.getCustomerType())
+                .termsVersion(verificationData.getTermsVersion())
+                .verificationCode(null)
+                .verificationCodeExpireAt(null)
+                .build();
+        UserEntity savedUser = userServices.createUserFromData(creationData);
 
         // Remover datos temporales
         pendingVerifications.remove(email);
@@ -136,7 +131,7 @@ public class UserVerificationService {
         UserVerificationData verificationData = pendingVerifications.get(request.getEmail());
 
         if (verificationData == null) {
-            throw new RuntimeException("No se encontraron datos de verificación para este email");
+            throw new VerificationNotFoundException("No se encontraron datos de verificación para este email");
         }
 
         // Actualizar el tipo de usuario

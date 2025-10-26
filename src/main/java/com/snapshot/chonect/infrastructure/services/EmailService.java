@@ -2,7 +2,7 @@ package com.snapshot.chonect.infrastructure.services;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
@@ -11,8 +11,6 @@ import com.snapshot.chonect.utils.EmailTemplateService;
 import com.snapshot.chonect.utils.exceptions.BadRequestException;
 
 import lombok.AllArgsConstructor;
-import reactor.core.publisher.Mono;
-
 import java.util.List;
 import java.util.Map;
 
@@ -24,10 +22,8 @@ public class EmailService {
     private static final int MAX_RETRIES = 3;
     private static final long RETRY_DELAY_MS = 1000; // 1 segundo
 
-    @Autowired
     private final WebClient webClient;
 
-    @Autowired
     private final EmailTemplateService emailTemplateService;
 
     // Método centralizado para enviar emails de verificación
@@ -38,7 +34,7 @@ public class EmailService {
 
         try {
             sendEmailWithRetry(email, subject, textMessage, htmlMessage);
-        } catch (Exception e) {
+        } catch (BadRequestException e) {
             logger.error("Error al enviar correo de verificación a {}: {}", email, e.getMessage(), e);
             String errorMessage = analyzeEmailError(e);
             if (errorMessage.contains("API") || errorMessage.contains("conexión")) {
@@ -52,87 +48,68 @@ public class EmailService {
     }
 
     // Método genérico para envío de correos con reintentos usando la API de Resend
-    public void sendEmailWithRetry(String to, String subject, String textContent, String htmlContent) throws Exception {
-        Exception lastException = null;
-
+    public void sendEmailWithRetry(String to, String subject, String textContent, String htmlContent) throws BadRequestException {
         for (int attempt = 1; attempt <= MAX_RETRIES; attempt++) {
-            try {
-                logger.info("Intento {}/{} de envío de correo a: {}", attempt, MAX_RETRIES, to);
-
-                if (attempt > 1) {
-                    // Esperar antes de reintentar (solo si no es el primer intento)
+            if (attemptSendEmail(to, subject, textContent, htmlContent, attempt)) {
+                return; // Success
+            }
+            if (attempt < MAX_RETRIES) {
+                try {
                     Thread.sleep(RETRY_DELAY_MS * attempt);
-                }
-
-                // Preparar el payload para la API de Resend
-                Map<String, Object> payload = Map.of(
-                    "from", "onboarding@resend.dev",
-                    "to", List.of(to),
-                    "subject", subject,
-                    "html", htmlContent,
-                    "text", textContent
-                );
-
-                // Enviar usando WebClient
-                final int currentAttempt = attempt;
-                Map<String, Object> response = webClient.post()
-                    .uri("/emails")
-                    .bodyValue(payload)
-                    .retrieve()
-                    .bodyToMono(Map.class)
-                    .doOnSuccess(res -> logger.info("Email enviado exitosamente a: {} en el intento {}", to, currentAttempt))
-                    .doOnError(error -> logger.warn("Error en intento {}/{} para {}: {}", currentAttempt, MAX_RETRIES, to, error.getMessage()))
-                    .block(); // Bloquear para mantener la API síncrona
-
-                if (response != null && response.containsKey("id")) {
-                    logger.info("Correo enviado exitosamente a: {} con ID: {}", to, response.get("id"));
-                    return; // Éxito, salir del método
-                }
-
-            } catch (WebClientResponseException e) {
-                lastException = e;
-                logger.error("Error de respuesta HTTP en intento {}/{} para {}: {} - {}",
-                    attempt, MAX_RETRIES, to, e.getStatusCode(), e.getResponseBodyAsString());
-
-                // Para errores 4xx (cliente), no reintentar
-                if (e.getStatusCode().is4xxClientError()) {
-                    break;
-                }
-
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                lastException = e;
-                break;
-
-            } catch (Exception e) {
-                lastException = e;
-                logger.error("Error inesperado en intento {}/{} para {}: {}", attempt, MAX_RETRIES, to, e.getMessage());
-
-                // Para errores inesperados, intentar una vez más pero no todas las veces
-                if (attempt == MAX_RETRIES) {
-                    break;
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    throw new BadRequestException("Interrupción durante el envío de correo");
                 }
             }
         }
-
-        // Si llegamos aquí, todos los intentos fallaron
         logger.error("Todos los intentos de envío fallaron para: {}", to);
-        throw lastException != null ? lastException : new Exception("Error desconocido al enviar correo");
+        throw new BadRequestException("Error desconocido al enviar correo");
     }
 
-    // Método para notificar fallos críticos (puede ser extendido para enviar notificaciones)
-    private void notifyCriticalEmailFailure(String to, String subject, Exception cause) {
-        logger.error("🚨 FALLO CRÍTICO: No se pudo enviar correo crítico a {} con asunto '{}'", to, subject);
-        logger.error("Causa: {}", cause.getMessage());
-
-        // Aquí podrías agregar:
-        // - Envío de notificación a administradores
-        // - Almacenamiento en base de datos para reintento manual
-        // - Métricas de monitoreo
-        // - Alertas a sistemas externos
-
-        // Por ahora solo logueamos, pero esta estructura permite extensión futura
+    private boolean attemptSendEmail(String to, String subject, String textContent, String htmlContent, int attempt) {
+        try {
+            logger.info("Intento {}/{} de envío de correo a: {}", attempt, MAX_RETRIES, to);
+            Map<String, Object> response = sendSingleEmail(to, subject, textContent, htmlContent, attempt);
+            if (response != null && response.containsKey("id")) {
+                logger.info("Correo enviado exitosamente a: {} con ID: {}", to, response.get("id"));
+                return true;
+            }
+            return false;
+        } catch (WebClientResponseException e) {
+            logger.error("Error de respuesta HTTP en intento {}/{} para {}: {} - {}",
+                attempt, MAX_RETRIES, to, e.getStatusCode(), e.getResponseBodyAsString());
+            return e.getStatusCode().is4xxClientError(); // No retry for 4xx
+        } catch (Exception e) {
+            logger.error("Error inesperado en intento {}/{} para {}: {}", attempt, MAX_RETRIES, to, e.getMessage());
+            return false;
+        }
     }
+
+    private Map<String, Object> sendSingleEmail(String to, String subject, String textContent, String htmlContent, int attempt) {
+        Map<String, Object> payload = createEmailPayload(to, subject, textContent, htmlContent);
+        @SuppressWarnings("unchecked")
+        Map<String, Object> response = webClient.post()
+            .uri("/emails")
+            .bodyValue(payload)
+            .retrieve()
+            .bodyToMono(Map.class)
+            .doOnSuccess(res -> logger.info("Email enviado exitosamente a: {} en el intento {}", to, attempt))
+            .doOnError(error -> logger.warn("Error en intento {}/{} para {}: {}", attempt, MAX_RETRIES, to, error.getMessage()))
+            .block();
+        return response;
+    }
+
+    private Map<String, Object> createEmailPayload(String to, String subject, String textContent, String htmlContent) {
+        return Map.of(
+            "from", "onboarding@resend.dev",
+            "to", List.of(to),
+            "subject", subject,
+            "html", htmlContent,
+            "text", textContent
+        );
+    }
+
+
 
     // Método para analizar errores de correo y proporcionar información útil
     private String analyzeEmailError(Exception e) {

@@ -1,5 +1,5 @@
 package com.snapshot.chonect.infrastructure.abstract_services.basic_abstract_services;
 
-public interface UpdateService<RS, RUQ, ID> {
-    public RS update(RUQ request, ID id);
+public interface UpdateService<T, U, I> {
+    public T update(U request, I id);
 }

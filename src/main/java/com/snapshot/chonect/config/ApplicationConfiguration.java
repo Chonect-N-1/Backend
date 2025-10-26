@@ -21,11 +21,7 @@ public class ApplicationConfiguration {
 
     @Bean
     UserDetailsService userDetailsService() {
-        return (username) -> {
-            return (UserDetails) this.userRepository.findByEmail(username).orElseThrow(() -> {
-                return new IdNotFoundException(ErrorMessages.nameNotFound("Usuario"));
-            });
-        };
+        return username -> (UserDetails) this.userRepository.findByEmail(username).orElseThrow(() -> new IdNotFoundException(ErrorMessages.nameNotFound("Usuario")));
     }
 
     @Bean
@@ -37,22 +33,4 @@ public class ApplicationConfiguration {
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
-
-    // public UserDetails loadUserByUsername(String usernameOrEmail) throws
-    // UsernameNotFoundException {
-    // // Buscamos el usuario en la base de datos usando el mismo valor para ambos
-    // parámetros
-    // UserEntity user = userRepository.findByUsernameOrEmail(usernameOrEmail,
-    // usernameOrEmail)
-    // .orElseThrow(() -> new UsernameNotFoundException("No se encontró un usuario
-    // con el nombre o email: " + usernameOrEmail));
-
-    // // Creas y devuelves un objeto UserDetails a partir del usuario encontrado.
-    // return new User(
-    // user.getUsername(),
-    // user.getPassword(),
-    // // Aquí irían los roles/autoridades del usuario, por ahora lo dejamos vacío.
-    // java.util.Collections.emptyList()
-    // );
-    // }
 }

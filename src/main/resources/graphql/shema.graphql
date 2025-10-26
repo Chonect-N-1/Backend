@@ -47,7 +47,7 @@ type Connection {
     actionType: String!
     orderNum: Int
     delay: Int
-    parallel: Boolean
+    isParallel: Boolean
 }
 
 input ProjectInput {
@@ -92,7 +92,7 @@ input ConnectionInput {
     actionType: String!
     orderNum: Int
     delay: Int
-    parallel: Boolean
+    isParallel: Boolean
 }
 
 type Query {

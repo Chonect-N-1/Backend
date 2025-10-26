@@ -1,6 +1,5 @@
 package com.snapshot.chonect.utils;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.snapshot.chonect.domain.repositories.UserRepository;
@@ -9,7 +8,6 @@ import com.snapshot.chonect.utils.exceptions.BadRequestException;
 @Service
 public class UserValidationService {
 
-    @Autowired
     private UserRepository userRepository;
 
     /**

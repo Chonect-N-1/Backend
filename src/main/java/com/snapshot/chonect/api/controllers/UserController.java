@@ -1,6 +1,5 @@
 package com.snapshot.chonect.api.controllers;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -11,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.snapshot.chonect.api.controllers.Basic_controller.GetByIdController;
+import com.snapshot.chonect.api.controllers.basic_controller.GetByIdController;
 import com.snapshot.chonect.api.dto.request.UserPatchRequest;
 import com.snapshot.chonect.api.dto.request.UserVerificationRequest;
 import com.snapshot.chonect.api.dto.response.UserResponse;
@@ -30,13 +29,10 @@ import lombok.AllArgsConstructor;
 public class UserController implements GetByIdController<UserResponse>
     {
 
-    @Autowired
     private final UserServices userServices;
 
-    @Autowired
     private final JwtService jwtService;
 
-    @Autowired
     private final UserVerificationService userVerificationService;
 
     @Override

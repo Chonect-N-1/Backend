@@ -1,6 +1,5 @@
 package com.snapshot.chonect.infrastructure.services;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Service;
 
@@ -9,14 +8,15 @@ import com.snapshot.chonect.domain.models.LanguageEntity;
 import com.snapshot.chonect.domain.repositories.CountryRepository;
 import com.snapshot.chonect.domain.repositories.LanguageRepository;
 
+import lombok.RequiredArgsConstructor;
+
 @Service
+@RequiredArgsConstructor
 public class DataInitializationService implements CommandLineRunner {
 
-    @Autowired
-    private CountryRepository countryRepository;
+    private final CountryRepository countryRepository;
 
-    @Autowired
-    private LanguageRepository languageRepository;
+    private final LanguageRepository languageRepository;
 
     @Override
     public void run(String... args) throws Exception {

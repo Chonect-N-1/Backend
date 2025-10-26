@@ -2,17 +2,16 @@ package com.snapshot.chonect.infrastructure.services;
 
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.snapshot.chonect.domain.models.CountryEntity;
 import com.snapshot.chonect.domain.repositories.CountryRepository;
+import com.snapshot.chonect.utils.exceptions.IdNotFoundException;
 
 @Service
 public class CountryService {
 
-    @Autowired
     private final CountryRepository countryRepository;
 
     public CountryService(CountryRepository countryRepository) {
@@ -27,6 +26,6 @@ public class CountryService {
     @Transactional(readOnly = true)
     public CountryEntity getById(Long id) {
         return countryRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("País no encontrado con id: " + id));
+                .orElseThrow(() -> new IdNotFoundException("País no encontrado con id: " + id));
     }
 }

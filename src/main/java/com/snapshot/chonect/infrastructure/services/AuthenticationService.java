@@ -4,7 +4,6 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.snapshot.chonect.api.dto.request.LoginUserDto;
@@ -15,10 +14,6 @@ import com.snapshot.chonect.utils.exceptions.IdNotFoundException;
 import com.snapshot.chonect.utils.exceptions.UnauthorizedException;
 import com.snapshot.chonect.utils.messages.ErrorMessages;
 import com.snapshot.chonect.utils.VerificationCodeService;
-import com.snapshot.chonect.utils.EmailTemplateService;
-import com.snapshot.chonect.utils.UserValidationService;
-
-// import lombok.AllArgsConstructor;
 
 @Service
 public class AuthenticationService {
@@ -31,11 +26,8 @@ public class AuthenticationService {
     public AuthenticationService(
             UserRepository userRepository,
             AuthenticationManager authenticationManager,
-            PasswordEncoder passwordEncoder,
             EmailService emailService,
-            VerificationCodeService verificationCodeService,
-            EmailTemplateService emailTemplateService,
-            UserValidationService userValidationService
+            VerificationCodeService verificationCodeService
     ) {
         this.userRepository = userRepository;
         this.authenticationManager = authenticationManager;
@@ -46,7 +38,7 @@ public class AuthenticationService {
 
 
     public UserEntity authenticate(LoginUserDto input) {
-        UserEntity user = (UserEntity) this.userRepository.findByUsernameOrEmail(input.getEmail(), input.getEmail())
+        UserEntity user = this.userRepository.findByUsernameOrEmail(input.getEmail(), input.getEmail())
                 .orElseThrow(() -> new BadRequestException(ErrorMessages.nameNotFound("Usuario")));
         if (!user.isEnabled()) {
             throw new UnauthorizedException(ErrorMessages.cuentaNotVerificate("Usuario"));
@@ -65,18 +57,14 @@ public class AuthenticationService {
         if (optionalUser.isPresent()) {
             UserEntity user = optionalUser.get();
             if (user.isEnabled()) {
-                throw new RuntimeException("Account is already verified");
+                throw new BadRequestException("Account is already verified");
             }
             user.setVerificationCode(verificationCodeService.generateVerificationCode());
             user.setVerificationCodeExpireAt(LocalDateTime.now().plusHours(1));
-            try {
-                emailService.sendVerificationEmail(user.getEmail(), user.getFirstName(), user.getVerificationCode());
-            } catch (BadRequestException e) {
-                throw e;
-            }
+            emailService.sendVerificationEmail(user.getEmail(), user.getFirstName(), user.getVerificationCode());
             userRepository.save(user);
         } else {
-            throw new RuntimeException("User not found");
+            throw new IdNotFoundException("User not found");
         }
     }
     

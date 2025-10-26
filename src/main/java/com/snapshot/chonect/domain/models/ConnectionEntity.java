@@ -19,5 +19,5 @@ public class ConnectionEntity {
     private String actionType;
     private Integer orderNum;
     private Integer delay;
-    private Boolean parallel;
+    private Boolean isParallel;
 }
