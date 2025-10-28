@@ -14,6 +14,7 @@ import com.snapshot.chonect.utils.exceptions.BadRequestException;
 import com.snapshot.chonect.utils.exceptions.IdNotFoundException;
 import com.snapshot.chonect.utils.exceptions.UnauthorizedException;
 import com.snapshot.chonect.utils.exceptions.UserExistsException;
+import com.snapshot.chonect.utils.exceptions.VerificationNotFoundException;
 
 /**
  * Controlador de errores global para manejar excepciones personalizadas
@@ -70,6 +71,19 @@ public class GlobalExceptionHandler {
         return ErrorsResponse.builder()
                 .code(HttpStatus.CONFLICT.value())
                 .status(HttpStatus.CONFLICT.name())
+                .errors(errors)
+                .build();
+    }
+
+    @ExceptionHandler(VerificationNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public BaseErrorResponse handleVerificationNotFound(VerificationNotFoundException exception) {
+        List<String> errors = new ArrayList<>();
+        errors.add(exception.getMessage());
+
+        return ErrorsResponse.builder()
+                .code(HttpStatus.NOT_FOUND.value())
+                .status(HttpStatus.NOT_FOUND.name())
                 .errors(errors)
                 .build();
     }

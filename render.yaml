@@ -20,11 +20,7 @@ services:
         value: update
       - key: SPRING_JPA_DATABASE_PLATFORM
         value: org.hibernate.dialect.MySQLDialect
-      # Variables para JWT
-      - key: SECURITY_JWT_SECRET_KEY
-        fromSecret: jwt-secret-key
-      - key: SECURITY_JWT_EXPIRATION_TIME
-        value: 3600000
+
       # Variables para correo (Resend API) - Usar secreto para seguridad
       - key: RESEND_API_KEY
         fromSecret: resend-api-key

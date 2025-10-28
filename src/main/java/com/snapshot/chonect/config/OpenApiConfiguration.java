@@ -8,6 +8,9 @@ import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.info.License;
 import io.swagger.v3.oas.models.servers.Server;
+import io.swagger.v3.oas.models.security.SecurityScheme;
+import io.swagger.v3.oas.models.security.SecurityRequirement;
+import io.swagger.v3.oas.models.Components;
 
 @Configuration
 public class OpenApiConfiguration {
@@ -31,6 +34,14 @@ public class OpenApiConfiguration {
                         .description("Servidor de desarrollo local"))
                 .addServersItem(new Server()
                         .url("https://chonect-n-1.onrender.com")
-                        .description("Servidor de producción"));
+                        .description("Servidor de producción"))
+                .components(new Components()
+                        .addSecuritySchemes("bearerAuth",
+                            new SecurityScheme()
+                                .type(SecurityScheme.Type.HTTP)
+                                .scheme("bearer")
+                                .bearerFormat("JWT")
+                                .description("JWT Authorization header using the Bearer scheme")))
+                .addSecurityItem(new SecurityRequirement().addList("bearerAuth"));
     }
 }

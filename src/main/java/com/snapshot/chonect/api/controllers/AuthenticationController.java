@@ -1,5 +1,7 @@
 package com.snapshot.chonect.api.controllers;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -33,7 +35,9 @@ import lombok.AllArgsConstructor;
 @AllArgsConstructor
 @Tag(name = "Autenticación", description = "Endpoints para autenticación de usuarios")
 public class AuthenticationController {
-    
+
+    private static final Logger logger = LoggerFactory.getLogger(AuthenticationController.class);
+
     private final JwtService jwtService;
     private final AuthenticationService authenticationService;
     private final UserVerificationService userVerificationService;
@@ -114,11 +118,14 @@ public class AuthenticationController {
         @ApiResponse(responseCode = "404", description = "No se encontraron datos de verificación")
     })
     public ResponseEntity<UserCompleteVerificationResponse> verifyUserAccount(@RequestBody UserCompleteVerificationRequest request) {
+        logger.info("Starting user verification for email: {}", request.getEmail());
         // Completar verificación y crear usuario real
         UserEntity newUser = userVerificationService.completeVerification(request.getEmail(), request.getVerificationCode());
+        logger.info("User created successfully with ID: {}", newUser.getId());
 
         // Generar token JWT para el usuario recién creado
         String jwt = jwtService.generateToken(newUser);
+        logger.info("JWT token generated successfully for user: {}", newUser.getUsername());
         // Crear respuesta completa
         UserCompleteVerificationResponse response = UserCompleteVerificationResponse.builder()
                 .message("Cuenta verificada y creada exitosamente")

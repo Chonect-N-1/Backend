@@ -8,6 +8,8 @@ import java.util.function.Function;
 
 import javax.crypto.SecretKey;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
@@ -23,6 +25,8 @@ import lombok.AllArgsConstructor;
 @Service
 @AllArgsConstructor
 public class JwtService {
+
+    private static final Logger logger = LoggerFactory.getLogger(JwtService.class);
 
     private final JwtProperties jwtProperties;
 
@@ -40,6 +44,7 @@ public class JwtService {
     }
 
     public String generateToken(Map<String, Object> extraClaims, UserDetails userDetails) {
+        logger.info("Generating JWT token for user: {}", userDetails.getUsername());
         return buildToken(extraClaims, userDetails, jwtProperties.getExpirationTime());
     }
 
@@ -85,7 +90,19 @@ public class JwtService {
     }
 
     private Key getSignInKey() {
-        byte[] keyBytes = Decoders.BASE64.decode(jwtProperties.getSecretKey());
-        return Keys.hmacShaKeyFor(keyBytes);
+        String secretKey = jwtProperties.getSecretKey();
+        logger.info("JWT Secret Key loaded: {}", secretKey != null ? "present (length: " + secretKey.length() + ")" : "null");
+        if (secretKey == null || secretKey.trim().isEmpty()) {
+            logger.error("JWT secret key is not configured");
+            throw new IllegalArgumentException("JWT secret key is not configured. Please set the SECURITY_JWT_SECRET_KEY environment variable.");
+        }
+        try {
+            byte[] keyBytes = Decoders.BASE64.decode(secretKey);
+            logger.info("JWT Secret Key decoded successfully, key length: {}", keyBytes.length);
+            return Keys.hmacShaKeyFor(keyBytes);
+        } catch (Exception e) {
+            logger.error("Failed to decode JWT secret key: {}", e.getMessage());
+            throw new IllegalArgumentException("Invalid JWT secret key format. Ensure it is a valid Base64 encoded string.", e);
+        }
     }
 }

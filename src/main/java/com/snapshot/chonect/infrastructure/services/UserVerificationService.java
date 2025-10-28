@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.snapshot.chonect.api.dto.request.UserVerificationRequest;
 import com.snapshot.chonect.api.dto.request.UserVerificationUpdateRequest;
@@ -82,6 +83,7 @@ public class UserVerificationService {
                 .build();
     }
 
+    @Transactional
     public UserEntity completeVerification(String email, String verificationCode) {
         // Buscar datos de verificación
         UserVerificationData verificationData = pendingVerifications.get(email);

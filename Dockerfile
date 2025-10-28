@@ -42,8 +42,7 @@ ENV PORT=8080
 ENV SPRING_PROFILES_ACTIVE=prod
 ENV JAVA_OPTS="-Xmx512m -Xms256m"
 
-# Variables de entorno para JWT (se sobreescribirán por Render)
-ENV SECURITY_JWT_EXPIRATION_TIME=3600000
+# JWT ahora está configurado directamente en application.properties
 ENV SPRING_JPA_HIBERNATE_DDL_AUTO=update
 
 # Cambiar propietario de archivos
