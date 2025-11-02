@@ -14,6 +14,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import com.snapshot.chonect.config.JwtProperties;
+import com.snapshot.chonect.domain.models.UserEntity;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -46,6 +47,27 @@ public class JwtService {
     public String generateToken(Map<String, Object> extraClaims, UserDetails userDetails) {
         logger.info("Generating JWT token for user: {}", userDetails.getUsername());
         return buildToken(extraClaims, userDetails, jwtProperties.getExpirationTime());
+    }
+
+    /**
+     * Genera un token JWT con información específica del usuario.
+     * Incluye customerType, userId y status en los claims del token.
+     * 
+     * @param user El usuario para generar el token
+     * @return Token JWT con información del usuario
+     */
+    public String generateTokenWithUserInfo(UserEntity user) {
+        logger.info("Generating JWT token with user info for user: {}", user.getUsername());
+        
+        Map<String, Object> extraClaims = new HashMap<>();
+        extraClaims.put("customerType", user.getCustomerType().name());
+        extraClaims.put("userId", user.getId());
+        extraClaims.put("status", user.isEnabled() ? "active" : "pending");
+        
+        logger.info("Added claims - customerType: {}, userId: {}, status: {}", 
+                   user.getCustomerType().name(), user.getId(), user.isEnabled() ? "active" : "pending");
+        
+        return buildToken(extraClaims, user, jwtProperties.getExpirationTime());
     }
 
     public long getExpirationTime() {

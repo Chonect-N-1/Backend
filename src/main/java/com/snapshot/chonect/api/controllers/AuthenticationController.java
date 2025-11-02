@@ -77,7 +77,7 @@ public class AuthenticationController {
     })
     public ResponseEntity<LoginResponse> authenticate(@RequestBody LoginUserDto loginUserDto){
         UserEntity authenticatedUser = authenticationService.authenticate(loginUserDto);
-        String jwt = jwtService.generateToken(authenticatedUser);
+        String jwt = jwtService.generateTokenWithUserInfo(authenticatedUser);
         LoginResponse loginResponse = new LoginResponse(jwt, jwtService.getExpirationTime());
         return ResponseEntity.ok(loginResponse);
     }
@@ -124,7 +124,7 @@ public class AuthenticationController {
         logger.info("User created successfully with ID: {}", newUser.getId());
 
         // Generar token JWT para el usuario recién creado
-        String jwt = jwtService.generateToken(newUser);
+        String jwt = jwtService.generateTokenWithUserInfo(newUser);
         logger.info("JWT token generated successfully for user: {}", newUser.getUsername());
         // Crear respuesta completa
         UserCompleteVerificationResponse response = UserCompleteVerificationResponse.builder()
