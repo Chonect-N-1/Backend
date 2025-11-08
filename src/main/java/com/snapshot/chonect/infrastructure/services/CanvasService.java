@@ -8,9 +8,9 @@ import com.snapshot.chonect.infrastructure.abstract_services.ICanvasService;
 import com.snapshot.chonect.infrastructure.helpers.SupportService;
 
 @Service
-public class CanvasService extends BaseCrudService<CanvasEntity, CanvasRepository> implements ICanvasService {
+public class CanvasService extends BaseCrudService<CanvasEntity, Long, CanvasRepository> implements ICanvasService {
 
-    public CanvasService(CanvasRepository repository, SupportService<CanvasEntity> supportService) {
+    public CanvasService(CanvasRepository repository, SupportService<CanvasEntity, Long> supportService) {
         super(repository, supportService);
     }
 

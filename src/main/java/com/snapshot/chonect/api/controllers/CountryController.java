@@ -1,6 +1,7 @@
 package com.snapshot.chonect.api.controllers;
 
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,7 +28,7 @@ public class CountryController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<CountryEntity> getById(@PathVariable Long id) {
+    public ResponseEntity<CountryEntity> getById(@PathVariable UUID id) {
         return ResponseEntity.ok(countryService.getById(id));
     }
 }

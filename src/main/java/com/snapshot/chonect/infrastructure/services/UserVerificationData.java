@@ -2,6 +2,7 @@ package com.snapshot.chonect.infrastructure.services;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 import com.snapshot.chonect.utils.enums.CustomerType;
 
@@ -20,8 +21,8 @@ public class UserVerificationData {
     private String password;
     private String firstName;
     private String lastName;
-    private Long countryId;
-    private Long languageId;
+    private UUID countryId;
+    private UUID languageId;
     private LocalDate birthDate;
     private CustomerType customerType;
     private Boolean acceptDataTreatment;

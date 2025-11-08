@@ -1,7 +1,9 @@
 package com.snapshot.chonect.infrastructure.services;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.stereotype.Service;
@@ -73,8 +75,9 @@ public class AuthenticationService {
         UserEntity user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new IdNotFoundException(ErrorMessages.emailNotFound("Usuario con email: " + email)));
 
-        // Si el usuario existe, lo elimina.
-        userRepository.deleteById(user.getId());
+        // Si el usuario existe, lo elimina usando Objects.requireNonNull para manejar tipos nulos
+        UUID userId = user.getId();
+        userRepository.deleteById(Objects.requireNonNull(userId));
     }
 
 

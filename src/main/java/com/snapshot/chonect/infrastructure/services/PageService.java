@@ -8,9 +8,9 @@ import com.snapshot.chonect.infrastructure.abstract_services.IPageService;
 import com.snapshot.chonect.infrastructure.helpers.SupportService;
 
 @Service
-public class PageService extends BaseCrudService<PageEntity, PageRepository> implements IPageService {
+public class PageService extends BaseCrudService<PageEntity, Long, PageRepository> implements IPageService {
 
-    public PageService(PageRepository repository, SupportService<PageEntity> supportService) {
+    public PageService(PageRepository repository, SupportService<PageEntity, Long> supportService) {
         super(repository, supportService);
     }
 

@@ -8,9 +8,9 @@ import com.snapshot.chonect.infrastructure.abstract_services.IProjectService;
 import com.snapshot.chonect.infrastructure.helpers.SupportService;
 
 @Service
-public class ProjectService extends BaseCrudService<ProjectEntity, ProjectRepository> implements IProjectService {
+public class ProjectService extends BaseCrudService<ProjectEntity, Long, ProjectRepository> implements IProjectService {
 
-    public ProjectService(ProjectRepository repository, SupportService<ProjectEntity> supportService) {
+    public ProjectService(ProjectRepository repository, SupportService<ProjectEntity, Long> supportService) {
         super(repository, supportService);
     }
 

@@ -1,11 +1,11 @@
 package com.snapshot.chonect.api.dto.request;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 import com.snapshot.chonect.utils.enums.CustomerType;
 
 import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Past;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
@@ -37,11 +37,9 @@ public class UserPatchRequest {
     @Size(min = 1, max = 50, message = "el apellido debe tener entre 1 a 50 caracteres")
     private String lastName;
 
-    @Min(value = 1, message = "el ID del país debe ser mayor a 0")
-    private Long countryId;
+    private UUID countryId;
 
-    @Min(value = 1, message = "el ID del idioma debe ser mayor a 0")
-    private Long languageId;
+    private UUID languageId;
 
     @Past(message = "la fecha de nacimiento debe ser en el pasado")
     private LocalDate birthDate;

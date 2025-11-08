@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
 @RestController
-public interface GetByIdController<T> {
+public interface GetByIdController<T, I> {
     @GetMapping("/{id}")
-    public ResponseEntity<T> getById(@PathVariable Long id);
+    public ResponseEntity<T> getById(@PathVariable I id);
 }

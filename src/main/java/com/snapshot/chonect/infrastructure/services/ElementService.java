@@ -8,9 +8,9 @@ import com.snapshot.chonect.infrastructure.abstract_services.IElementService;
 import com.snapshot.chonect.infrastructure.helpers.SupportService;
 
 @Service
-public class ElementService extends BaseCrudService<ElementEntity, ElementRepository> implements IElementService {
+public class ElementService extends BaseCrudService<ElementEntity, Long, ElementRepository> implements IElementService {
 
-    public ElementService(ElementRepository repository, SupportService<ElementEntity> supportService) {
+    public ElementService(ElementRepository repository, SupportService<ElementEntity, Long> supportService) {
         super(repository, supportService);
     }
 

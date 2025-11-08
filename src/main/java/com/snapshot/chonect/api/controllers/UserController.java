@@ -20,13 +20,14 @@ import com.snapshot.chonect.infrastructure.services.JwtService;
 import com.snapshot.chonect.infrastructure.services.UserServices;
 import com.snapshot.chonect.infrastructure.services.UserVerificationService;
 import com.snapshot.chonect.utils.exceptions.BadRequestException;
+import java.util.UUID;
 
 import lombok.AllArgsConstructor;
 
 @RestController
 @RequestMapping(path = "/api/v1/user")
 @AllArgsConstructor
-public class UserController implements GetByIdController<UserResponse>
+public class UserController implements GetByIdController<UserResponse, UUID>
     {
 
     private final UserServices userServices;
@@ -36,7 +37,7 @@ public class UserController implements GetByIdController<UserResponse>
     private final UserVerificationService userVerificationService;
 
     @Override
-    public ResponseEntity<UserResponse> getById(Long id) {
+    public ResponseEntity<UserResponse> getById(UUID id) {
         return ResponseEntity.ok(this.userServices.getById(id));
     }
 
@@ -49,7 +50,7 @@ public class UserController implements GetByIdController<UserResponse>
 
     // Actualizar usuario existente (requiere autenticación)
     @PatchMapping("/{id}")
-    public ResponseEntity<UserResponse> updateUser(@Validated @RequestBody UserPatchRequest request, @PathVariable Long id, @RequestHeader("Authorization") String token) {
+    public ResponseEntity<UserResponse> updateUser(@Validated @RequestBody UserPatchRequest request, @PathVariable UUID id, @RequestHeader("Authorization") String token) {
         // Extraer el usuario del token JWT
         String jwtToken = token.replace("Bearer ", "");
         String username = jwtService.extractUsername(jwtToken);

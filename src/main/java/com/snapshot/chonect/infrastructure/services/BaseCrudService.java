@@ -2,6 +2,8 @@ package com.snapshot.chonect.infrastructure.services;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
 import com.snapshot.chonect.infrastructure.helpers.SupportService;
 import com.snapshot.chonect.utils.exceptions.EntityCreationException;
 import com.snapshot.chonect.utils.exceptions.EntityDeletionException;
@@ -9,18 +11,21 @@ import com.snapshot.chonect.utils.exceptions.IdNotFoundException;
 
 import java.util.List;
 
-public abstract class BaseCrudService<T, R extends JpaRepository<T, Long>> {
+public abstract class BaseCrudService<T, I, R extends JpaRepository<T, I>> {
 
     protected final R repository;
-    protected final SupportService<T> supportService;
+    protected final SupportService<T, I> supportService;
 
-    protected BaseCrudService(R repository, SupportService<T> supportService) {
+    protected BaseCrudService(R repository, SupportService<T, I> supportService) {
         this.repository = repository;
         this.supportService = supportService;
     }
 
     @Transactional
-    public T create(T request) {
+    public T create(@NonNull T request) {
+        if (request == null) {
+            throw new IllegalArgumentException("El request no puede ser null");
+        }
         try {
             return repository.save(request);
         } catch (Exception e) {
@@ -29,7 +34,10 @@ public abstract class BaseCrudService<T, R extends JpaRepository<T, Long>> {
     }
 
     @Transactional(readOnly = true)
-    public T getById(Long id) {
+    public T getById(@NonNull I id) {
+        if (id == null) {
+            throw new IllegalArgumentException("El id no puede ser null");
+        }
         return supportService.findById(repository, id, getEntityName());
     }
 
@@ -39,7 +47,10 @@ public abstract class BaseCrudService<T, R extends JpaRepository<T, Long>> {
     }
 
     @Transactional
-    public void delete(Long id) {
+    public void delete(@NonNull I id) {
+        if (id == null) {
+            throw new IllegalArgumentException("El id no puede ser null");
+        }
         try {
             if (!repository.existsById(id)) {
                 throw new IdNotFoundException(getEntityName() + " no encontrado: " + id);

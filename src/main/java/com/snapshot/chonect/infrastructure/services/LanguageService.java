@@ -1,6 +1,7 @@
 package com.snapshot.chonect.infrastructure.services;
 
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,7 +25,7 @@ public class LanguageService {
     }
 
     @Transactional(readOnly = true)
-    public LanguageEntity getById(Long id) {
+    public LanguageEntity getById(UUID id) {
         return languageRepository.findById(id)
                 .orElseThrow(() -> new IdNotFoundException("Idioma no encontrado con id: " + id));
     }

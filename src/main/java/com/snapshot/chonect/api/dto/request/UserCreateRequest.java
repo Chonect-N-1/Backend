@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
+import java.util.UUID;
 
 @Data
 @AllArgsConstructor
@@ -37,9 +38,9 @@ public class UserCreateRequest {
     @NotBlank(message = "el apellido es requerido")
     private String lastName;
 
-    private Long countryId;
+    private UUID countryId;
 
-    private Long languageId;
+    private UUID languageId;
 
     private String birthDate;
 }

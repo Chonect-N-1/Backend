@@ -7,13 +7,14 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
+import java.util.UUID;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @SuperBuilder
 public class UserResponse {
-    private Long id;
+    private UUID id;
     private String username;
     private String email;
     private String firstName;

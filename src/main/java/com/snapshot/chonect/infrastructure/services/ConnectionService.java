@@ -8,9 +8,9 @@ import com.snapshot.chonect.infrastructure.abstract_services.IConnectionService;
 import com.snapshot.chonect.infrastructure.helpers.SupportService;
 
 @Service
-public class ConnectionService extends BaseCrudService<ConnectionEntity, ConnectionRepository> implements IConnectionService {
+public class ConnectionService extends BaseCrudService<ConnectionEntity, Long, ConnectionRepository> implements IConnectionService {
 
-    public ConnectionService(ConnectionRepository repository, SupportService<ConnectionEntity> supportService) {
+    public ConnectionService(ConnectionRepository repository, SupportService<ConnectionEntity, Long> supportService) {
         super(repository, supportService);
     }
 

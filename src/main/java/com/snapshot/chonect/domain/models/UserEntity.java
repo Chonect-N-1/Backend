@@ -12,19 +12,23 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.NonNull;
 import lombok.Setter;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-@Entity(name = "user")
+@Entity
+@Table(name = "user")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -33,8 +37,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 public class UserEntity implements UserDetails {
     
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
     
     @Column(length = 50, nullable = false, unique = true)
     private String username;
@@ -91,7 +95,7 @@ public class UserEntity implements UserDetails {
         return List.of();
     }
 
-    // esto es basicamente un comprobante de si la cuanta sigue aun valida
+    // esto es basically un comprobante de si la cuanta sigue aun valida
     @Override
     public boolean isAccountNonExpired(){
         return true;

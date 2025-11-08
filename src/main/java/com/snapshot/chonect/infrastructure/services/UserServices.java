@@ -16,10 +16,12 @@ import com.snapshot.chonect.infrastructure.helpers.SupportService;
 import com.snapshot.chonect.infrastructure.helpers.UserMappers;
 import com.snapshot.chonect.utils.VerificationCodeService;
 import com.snapshot.chonect.utils.UserValidationService;
+import com.snapshot.chonect.utils.exceptions.BadRequestException;
 import com.snapshot.chonect.utils.exceptions.IdNotFoundException;
 import com.snapshot.chonect.utils.exceptions.UnauthorizedException;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
+import java.util.UUID;
 
 @Service
 @Transactional
@@ -30,7 +32,7 @@ public class UserServices implements IUserService {
 
     private final UserRepository userRepository;
 
-    private final SupportService<UserEntity> supportService;
+    private final SupportService<UserEntity, UUID> supportService;
 
     private final CountryService countryService;
 
@@ -45,23 +47,23 @@ public class UserServices implements IUserService {
     private final UserValidationService userValidationService;
 
     @Override
-    public UserResponse getById(Long id) {
+    public UserResponse getById(UUID id) {
         UserEntity userEntity = this.supportService.findById(userRepository, id, "UserEntity");
         return this.userMapper.userEntityToUserResponse(userEntity);
     }
 
     @Override
-    public UserResponse update(UserUpdateRequest request, Long id) {
+    public UserResponse update(UserUpdateRequest request, UUID id) {
         UserEntity userUpdate = this.userMapper.requestUpdateToEntity(request);
         userUpdate.setId(id);
         return this.userMapper.userEntityToUserResponse(this.userRepository.save(userUpdate));
     }
 
-    public UserResponse patch(UserPatchRequest request, Long id) {
+    public UserResponse patch(UserPatchRequest request, UUID id) {
         return patch(request, id, null);
     }
 
-    public UserResponse patch(UserPatchRequest request, Long id, UserEntity authenticatedUser) {
+    public UserResponse patch(UserPatchRequest request, UUID id, UserEntity authenticatedUser) {
         UserEntity existingUser = this.supportService.findById(userRepository, id, "UserEntity");
 
         // Si hay usuario autenticado, verificar que solo modifique su propia cuenta
@@ -86,12 +88,10 @@ public class UserServices implements IUserService {
             existingUser.setLastName(request.getLastName());
         }
         if (request.hasCountryId()) {
-            CountryEntity country = countryService.getById(request.getCountryId());
-            existingUser.setCountry(country);
+            validateAndSetCountry(existingUser, request.getCountryId());
         }
         if (request.hasLanguageId()) {
-            LanguageEntity language = languageService.getById(request.getLanguageId());
-            existingUser.setLanguage(language);
+            validateAndSetLanguage(existingUser, request.getLanguageId());
         }
         if (request.hasBirthDate()) {
             existingUser.setBirthDate(request.getBirthDate().toString());
@@ -143,6 +143,10 @@ public class UserServices implements IUserService {
         return this.userMapper.userEntityToUserResponse(savedUser);
     }
 
+    /**
+     * Método principal para crear usuario desde datos con validación de countryId y languageId
+     * **AQUÍ ESTABA EL PROBLEMA ORIGINAL del countryId = 0**
+     */
     public UserEntity createUserFromData(UserCreationData data) {
         UserEntity newUser = UserEntity.builder()
                 .username(data.getUsername())
@@ -158,14 +162,13 @@ public class UserServices implements IUserService {
                 .verificationCodeExpireAt(data.getVerificationCodeExpireAt())
                 .build();
 
+        // **VALIDACIÓN CRÍTICA**: Verificar que countryId y languageId sean válidos antes de buscar en BD
         if (data.getCountryId() != null) {
-            CountryEntity country = countryService.getById(data.getCountryId());
-            newUser.setCountry(country);
+            validateAndSetCountry(newUser, data.getCountryId());
         }
 
         if (data.getLanguageId() != null) {
-            LanguageEntity language = languageService.getById(data.getLanguageId());
-            newUser.setLanguage(language);
+            validateAndSetLanguage(newUser, data.getLanguageId());
         }
 
         if (data.getBirthDate() != null) {
@@ -175,14 +178,57 @@ public class UserServices implements IUserService {
         return userRepository.save(newUser);
     }
 
+    /**
+     * Valida que el countryId sea válido y existe en la base de datos
+     * Previene el error del countryId = 0
+     */
+    private void validateAndSetCountry(UserEntity user, UUID countryId) {
+        if (countryId == null) {
+            return; // Si es null, no se asigna país
+        }
+        
+        // Validar que el UUID no sea un UUID vacío o inválido
+        if (countryId.toString().equals("00000000-0000-0000-0000-000000000000")) {
+            throw new BadRequestException("ID de país inválido. No se puede usar UUID vacío.");
+        }
+        
+        try {
+            CountryEntity country = countryService.getById(countryId);
+            user.setCountry(country);
+        } catch (Exception e) {
+            throw new BadRequestException("País no encontrado con el ID proporcionado: " + countryId);
+        }
+    }
+
+    /**
+     * Valida que el languageId sea válido y existe en la base de datos
+     */
+    private void validateAndSetLanguage(UserEntity user, UUID languageId) {
+        if (languageId == null) {
+            return; // Si es null, no se asigna idioma
+        }
+        
+        // Validar que el UUID no sea un UUID vacío o inválido
+        if (languageId.toString().equals("00000000-0000-0000-0000-000000000000")) {
+            throw new BadRequestException("ID de idioma inválido. No se puede usar UUID vacío.");
+        }
+        
+        try {
+            LanguageEntity language = languageService.getById(languageId);
+            user.setLanguage(language);
+        } catch (Exception e) {
+            throw new BadRequestException("Idioma no encontrado con el ID proporcionado: " + languageId);
+        }
+    }
+
     public static class UserCreationData {
         private String username;
         private String email;
         private String password;
         private String firstName;
         private String lastName;
-        private Long countryId;
-        private Long languageId;
+        private UUID countryId;  // **CAMBIADO DE Long A UUID**
+        private UUID languageId; // **CAMBIADO DE Long A UUID**
         private String birthDate;
         private boolean enabled;
         private com.snapshot.chonect.utils.enums.Role role;
@@ -220,8 +266,8 @@ public class UserServices implements IUserService {
             private String password;
             private String firstName;
             private String lastName;
-            private Long countryId;
-            private Long languageId;
+            private UUID countryId;  // **CAMBIADO DE Long A UUID**
+            private UUID languageId; // **CAMBIADO DE Long A UUID**
             private String birthDate;
             private boolean enabled;
             private com.snapshot.chonect.utils.enums.Role role;
@@ -255,12 +301,12 @@ public class UserServices implements IUserService {
                 return this;
             }
 
-            public Builder countryId(Long countryId) {
+            public Builder countryId(UUID countryId) {
                 this.countryId = countryId;
                 return this;
             }
 
-            public Builder languageId(Long languageId) {
+            public Builder languageId(UUID languageId) {
                 this.languageId = languageId;
                 return this;
             }
@@ -321,11 +367,11 @@ public class UserServices implements IUserService {
         public String getLastName() { return lastName; }
         public void setLastName(String lastName) { this.lastName = lastName; }
 
-        public Long getCountryId() { return countryId; }
-        public void setCountryId(Long countryId) { this.countryId = countryId; }
+        public UUID getCountryId() { return countryId; }  // **CAMBIADO DE Long A UUID**
+        public void setCountryId(UUID countryId) { this.countryId = countryId; }
 
-        public Long getLanguageId() { return languageId; }
-        public void setLanguageId(Long languageId) { this.languageId = languageId; }
+        public UUID getLanguageId() { return languageId; } // **CAMBIADO DE Long A UUID**
+        public void setLanguageId(UUID languageId) { this.languageId = languageId; }
 
         public String getBirthDate() { return birthDate; }
         public void setBirthDate(String birthDate) { this.birthDate = birthDate; }

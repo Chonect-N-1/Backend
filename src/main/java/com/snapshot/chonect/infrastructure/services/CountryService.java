@@ -1,6 +1,7 @@
 package com.snapshot.chonect.infrastructure.services;
 
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,7 +25,7 @@ public class CountryService {
     }
 
     @Transactional(readOnly = true)
-    public CountryEntity getById(Long id) {
+    public CountryEntity getById(UUID id) {
         return countryRepository.findById(id)
                 .orElseThrow(() -> new IdNotFoundException("País no encontrado con id: " + id));
     }
