@@ -3,12 +3,16 @@ package com.snapshot.chonect.api.controllers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 
 import com.snapshot.chonect.api.dto.request.LoginUserDto;
 import com.snapshot.chonect.api.dto.request.UserCompleteVerificationRequest;
@@ -52,7 +56,7 @@ public class AuthenticationController {
         @ApiResponse(responseCode = "400", description = "Datos de verificación inválidos"),
         @ApiResponse(responseCode = "409", description = "El email o username ya está registrado")
     })
-    public ResponseEntity<UserVerificationResponse> initiateVerification(@RequestBody UserVerificationRequest request) {
+    public ResponseEntity<UserVerificationResponse> initiateVerification(@Validated @RequestBody UserVerificationRequest request) {
         UserVerificationResponse response = userVerificationService.initiateVerification(request);
         return ResponseEntity.ok(response);
     }
@@ -63,7 +67,7 @@ public class AuthenticationController {
         @ApiResponse(responseCode = "200", description = "Datos actualizados exitosamente"),
         @ApiResponse(responseCode = "404", description = "No se encontraron datos de verificación para este email")
     })
-    public ResponseEntity<String> updateVerification(@RequestBody UserVerificationUpdateRequest request) {
+    public ResponseEntity<String> updateVerification(@Validated @RequestBody UserVerificationUpdateRequest request) {
         userVerificationService.updateVerificationData(request);
         return ResponseEntity.ok("Datos de verificación actualizados exitosamente para el email: " + request.getEmail());
     }
@@ -75,7 +79,7 @@ public class AuthenticationController {
                 content = @Content(schema = @Schema(implementation = LoginResponse.class))),
         @ApiResponse(responseCode = "401", description = "Credenciales inválidas")
     })
-    public ResponseEntity<LoginResponse> authenticate(@RequestBody LoginUserDto loginUserDto){
+    public ResponseEntity<LoginResponse> authenticate(@Validated @RequestBody LoginUserDto loginUserDto){
         UserEntity authenticatedUser = authenticationService.authenticate(loginUserDto);
         String jwt = jwtService.generateTokenWithUserInfo(authenticatedUser);
         LoginResponse loginResponse = new LoginResponse(jwt, jwtService.getExpirationTime());
@@ -91,7 +95,7 @@ public class AuthenticationController {
         @ApiResponse(responseCode = "400", description = "Error al reenviar código"),
         @ApiResponse(responseCode = "404", description = "Usuario no encontrado")
     })
-    public ResponseEntity<String> resendVerificationCode(@RequestParam String email){
+    public ResponseEntity<String> resendVerificationCode(@RequestParam @NotBlank @Email String email){
         authenticationService.resendVerificationCode(email);
         return ResponseEntity.ok("Se ha reenviado el código de verificación al correo: " + email + "!!");
     }
@@ -102,7 +106,7 @@ public class AuthenticationController {
         @ApiResponse(responseCode = "200", description = "Usuario eliminado exitosamente"),
         @ApiResponse(responseCode = "404", description = "Usuario no encontrado")
     })
-    public ResponseEntity<String> deleteUser(@RequestParam String email) {
+    public ResponseEntity<String> deleteUser(@RequestParam @NotBlank @Email String email) {
         // Llama al nuevo método del servicio
         authenticationService.deleteUserByEmail(email);
         // Retorna una respuesta HTTP 200 OK con un mensaje de éxito
@@ -117,7 +121,7 @@ public class AuthenticationController {
         @ApiResponse(responseCode = "400", description = "Código de verificación inválido o expirado"),
         @ApiResponse(responseCode = "404", description = "No se encontraron datos de verificación")
     })
-    public ResponseEntity<UserCompleteVerificationResponse> verifyUserAccount(@RequestBody UserCompleteVerificationRequest request) {
+    public ResponseEntity<UserCompleteVerificationResponse> verifyUserAccount(@Validated @RequestBody UserCompleteVerificationRequest request) {
         logger.info("Starting user verification for email: {}", request.getEmail());
         // Completar verificación y crear usuario real
         UserEntity newUser = userVerificationService.completeVerification(request.getEmail(), request.getVerificationCode());

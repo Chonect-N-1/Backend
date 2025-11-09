@@ -2,6 +2,7 @@ package com.snapshot.chonect.infrastructure.services;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.lang.NonNull;
 
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
@@ -15,6 +16,7 @@ import lombok.AllArgsConstructor;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -25,12 +27,26 @@ public class EmailService {
     private static final int MAX_RETRIES = 3;
     private static final long RETRY_DELAY_MS = 1000; // 1 segundo
 
-    private final WebClient webClient;
+    private final @NonNull WebClient webClient;
 
-    private final EmailTemplateService emailTemplateService;
+    private final @NonNull EmailTemplateService emailTemplateService;
 
     // Método centralizado para enviar emails de verificación
-    public void sendVerificationEmail(String email, String firstName, String verificationCode) throws BadRequestException {
+    public void sendVerificationEmail(@NonNull String email, @NonNull String firstName, @NonNull String verificationCode) throws BadRequestException {
+        Objects.requireNonNull(email, "Email no puede ser null");
+        Objects.requireNonNull(firstName, "FirstName no puede ser null");
+        Objects.requireNonNull(verificationCode, "VerificationCode no puede ser null");
+
+        if (email.trim().isEmpty()) {
+            throw new BadRequestException("Email no puede estar vacío");
+        }
+        if (firstName.trim().isEmpty()) {
+            throw new BadRequestException("FirstName no puede estar vacío");
+        }
+        if (verificationCode.trim().isEmpty()) {
+            throw new BadRequestException("VerificationCode no puede estar vacío");
+        }
+
         String subject = emailTemplateService.getVerificationEmailSubject();
         String htmlMessage = emailTemplateService.generateVerificationEmailHtml(firstName, verificationCode);
         String textMessage = emailTemplateService.generateVerificationEmailText(firstName, verificationCode);
@@ -83,6 +99,12 @@ public class EmailService {
                 attempt, MAX_RETRIES, to, e.getStatusCode(), e.getResponseBodyAsString());
             return e.getStatusCode().is4xxClientError(); // No retry for 4xx
         } catch (Exception e) {
+            String errorMessage = e.getMessage() != null ? e.getMessage().toLowerCase() : "";
+            if (errorMessage.contains("connection") || errorMessage.contains("connect") ||
+                errorMessage.contains("timeout") || errorMessage.contains("network")) {
+                logger.error("Error de conexión de red en intento {}/{} para {}: {}", attempt, MAX_RETRIES, to, e.getMessage());
+                return false; // Retry for network errors
+            }
             logger.error("Error inesperado en intento {}/{} para {}: {}", attempt, MAX_RETRIES, to, e.getMessage());
             return false;
         }
@@ -92,16 +114,22 @@ public class EmailService {
     private Map<String, Object> sendSingleEmail(String to, String subject, String textContent, String htmlContent, int attempt) {
         Map<String, Object> payload = createEmailPayload(to, subject, textContent, htmlContent);
 
-        Map<String, Object> response = webClient.post()
-            .uri("/emails")
-            .bodyValue(payload)
-            .retrieve()
-            .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
-            .doOnSuccess(res -> logger.info("Email enviado exitosamente a: {} en el intento {}", to, attempt))
-            .doOnError(error -> logger.warn("Error en intento {}/{} para {}: {}", attempt, MAX_RETRIES, to, error.getMessage()))
-            .block();
+        try {
+            Map<String, Object> response = webClient.post()
+                .uri("/emails")
+                .bodyValue(payload)
+                .retrieve()
+                .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
+                .doOnSuccess(res -> logger.info("Email enviado exitosamente a: {} en el intento {}", to, attempt))
+                .doOnError(error -> logger.warn("Error en intento {}/{} para {}: {}", attempt, MAX_RETRIES, to, error.getMessage()))
+                .onErrorReturn(Collections.emptyMap()) // ✅ Manejo seguro de errores
+                .block();
 
-        return Optional.ofNullable(response).orElseGet(Collections::emptyMap);
+            return Optional.ofNullable(response).orElseGet(Collections::emptyMap);
+        } catch (Exception e) {
+            logger.error("Error crítico al enviar email a {} en intento {}: {}", to, attempt, e.getMessage());
+            return Collections.emptyMap(); // ✅ Retorno seguro en caso de error
+        }
     }
 
 

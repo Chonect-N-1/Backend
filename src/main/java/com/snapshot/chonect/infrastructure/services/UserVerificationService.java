@@ -2,6 +2,7 @@ package com.snapshot.chonect.infrastructure.services;
 
 import java.time.LocalDateTime;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.stereotype.Service;
@@ -72,8 +73,13 @@ public class UserVerificationService {
         // Guardar en cache temporal
         pendingVerifications.put(request.getEmail(), verificationData);
 
-        // Enviar email con código de verificación
-        emailService.sendVerificationEmail(request.getEmail(), request.getFirstName(), verificationCode);
+        // Enviar email con código de verificación (con verificación de nulos)
+        String safeEmail = Objects.requireNonNull(request.getEmail(), "Email cannot be null");
+        String safeFirstName = Objects.requireNonNull(request.getFirstName(), "First name cannot be null");
+        String safeVerificationCode = Objects.requireNonNull(verificationCode, "Verification code cannot be null");
+
+        emailService.sendVerificationEmail(safeEmail, safeFirstName, safeVerificationCode);
+
 
         return UserVerificationResponse.builder()
                 .message("Datos recibidos. Revisa tu email para verificar la cuenta.")
@@ -104,19 +110,26 @@ public class UserVerificationService {
         }
 
         // Crear usuario real en base de datos usando el método helper
+        String username = java.util.Objects.requireNonNull(verificationData.getUsername(), "username cannot be null");
+        String userEmail = java.util.Objects.requireNonNull(verificationData.getEmail(), "email cannot be null");
+        String password = java.util.Objects.requireNonNull(verificationData.getPassword(), "password cannot be null");
+        String firstName = java.util.Objects.requireNonNull(verificationData.getFirstName(), "firstName cannot be null");
+        String lastName = java.util.Objects.requireNonNull(verificationData.getLastName(), "lastName cannot be null");
+        String termsVersion = java.util.Objects.requireNonNull(verificationData.getTermsVersion(), "termsVersion cannot be null");
+
         UserServices.UserCreationData creationData = UserServices.UserCreationData.builder()
-                .username(verificationData.getUsername())
-                .email(verificationData.getEmail())
-                .password(verificationData.getPassword())
-                .firstName(verificationData.getFirstName())
-                .lastName(verificationData.getLastName())
+                .username(username)
+                .email(userEmail)
+                .password(password)
+                .firstName(firstName)
+                .lastName(lastName)
                 .countryId(verificationData.getCountryId())
                 .languageId(verificationData.getLanguageId())
                 .birthDate(verificationData.getBirthDate())
                 .enabled(true)
                 .role(com.snapshot.chonect.utils.enums.Role.CUSTOMER)
                 .customerType(verificationData.getCustomerType())
-                .termsVersion(verificationData.getTermsVersion())
+                .termsVersion(termsVersion)
                 .verificationCode(null)
                 .verificationCodeExpireAt(null)
                 .build();
