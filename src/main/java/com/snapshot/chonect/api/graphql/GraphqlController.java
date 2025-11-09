@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.MutationMapping;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Controller;
 
 import com.snapshot.chonect.domain.models.CanvasEntity;
@@ -37,8 +38,8 @@ public class GraphqlController {
     private final ProjectService projectService;
 
     // esta etiqueta @QueryMapping es usada para mapear las consultas a la API GraphQL
-    @QueryMapping 
-    public ProjectEntity findProjectById(@Argument Long id) { // El @Argument sirve pa mapear argumentos individuales
+    @QueryMapping
+    public ProjectEntity findProjectById(@Argument @NonNull Long id) { // El @Argument sirve pa mapear argumentos individuales
         return projectService.getById(id);
     }
     

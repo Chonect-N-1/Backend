@@ -1,6 +1,7 @@
 package com.snapshot.chonect.api.controllers;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.lang.NonNull;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -37,23 +38,26 @@ public class UserController implements GetByIdController<UserResponse, UUID>
     private final UserVerificationService userVerificationService;
 
     @Override
-    public ResponseEntity<UserResponse> getById(UUID id) {
+    @NonNull
+    public ResponseEntity<UserResponse> getById(@NonNull UUID id) {
         return ResponseEntity.ok(this.userServices.getById(id));
     }
 
     // Crear nuevo usuario con verificación
     @PostMapping
-    public ResponseEntity<UserVerificationResponse> createUser(@Validated @RequestBody UserVerificationRequest request) {
+    @NonNull
+    public ResponseEntity<UserVerificationResponse> createUser(@Validated @NonNull @RequestBody UserVerificationRequest request) {
         UserVerificationResponse response = userVerificationService.initiateVerification(request);
         return ResponseEntity.ok(response);
     }
 
     // Actualizar usuario existente (requiere autenticación)
     @PatchMapping("/{id}")
-    public ResponseEntity<UserResponse> updateUser(@Validated @RequestBody UserPatchRequest request, @PathVariable UUID id, @RequestHeader("Authorization") String token) {
+    @NonNull
+    public ResponseEntity<UserResponse> updateUser(@Validated @NonNull @RequestBody UserPatchRequest request, @PathVariable @NonNull UUID id, @RequestHeader("Authorization") @NonNull String token) {
         // Extraer el usuario del token JWT
         String jwtToken = token.replace("Bearer ", "");
-        String username = jwtService.extractUsername(jwtToken);
+        String username = java.util.Objects.requireNonNull(jwtService.extractUsername(jwtToken), "Username cannot be null");
 
         // Obtener el usuario autenticado
         UserEntity authenticatedUser = userServices.getByEmail(username);

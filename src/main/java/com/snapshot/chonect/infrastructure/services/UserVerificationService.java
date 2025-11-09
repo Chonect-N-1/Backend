@@ -112,7 +112,7 @@ public class UserVerificationService {
                 .lastName(verificationData.getLastName())
                 .countryId(verificationData.getCountryId())
                 .languageId(verificationData.getLanguageId())
-                .birthDate(verificationData.getBirthDate() != null ? verificationData.getBirthDate().toString() : null)
+                .birthDate(verificationData.getBirthDate())
                 .enabled(true)
                 .role(com.snapshot.chonect.utils.enums.Role.CUSTOMER)
                 .customerType(verificationData.getCustomerType())

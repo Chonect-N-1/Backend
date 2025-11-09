@@ -1,7 +1,9 @@
 package com.snapshot.chonect.infrastructure.services;
 
+import org.springframework.lang.NonNull;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import java.time.LocalDate;
 
 import com.snapshot.chonect.api.dto.request.UserPatchRequest;
 import com.snapshot.chonect.api.dto.request.UserUpdateRequest;
@@ -21,6 +23,8 @@ import com.snapshot.chonect.utils.exceptions.IdNotFoundException;
 import com.snapshot.chonect.utils.exceptions.UnauthorizedException;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
+
+import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -47,24 +51,24 @@ public class UserServices implements IUserService {
     private final UserValidationService userValidationService;
 
     @Override
-    public UserResponse getById(UUID id) {
-        UserEntity userEntity = this.supportService.findById(userRepository, id, "UserEntity");
-        return this.userMapper.userEntityToUserResponse(userEntity);
+    public @NonNull UserResponse getById(@NonNull UUID id) {
+        UserEntity userEntity = java.util.Objects.requireNonNull(this.supportService.findById(userRepository, id, "UserEntity"));
+        return java.util.Objects.requireNonNull(this.userMapper.userEntityToUserResponse(userEntity));
     }
 
     @Override
-    public UserResponse update(UserUpdateRequest request, UUID id) {
-        UserEntity userUpdate = this.userMapper.requestUpdateToEntity(request);
+    public @NonNull UserResponse update(UserUpdateRequest userRequest, UUID id) {
+        UserEntity userUpdate = java.util.Objects.requireNonNull(this.userMapper.requestUpdateToEntity(userRequest));
         userUpdate.setId(id);
-        return this.userMapper.userEntityToUserResponse(this.userRepository.save(userUpdate));
+        return java.util.Objects.requireNonNull(this.userMapper.userEntityToUserResponse(java.util.Objects.requireNonNull(this.userRepository.save(userUpdate))));
     }
 
-    public UserResponse patch(UserPatchRequest request, UUID id) {
+    public @NonNull UserResponse patch(@NonNull UserPatchRequest request, @NonNull UUID id) {
         return patch(request, id, null);
     }
 
-    public UserResponse patch(UserPatchRequest request, UUID id, UserEntity authenticatedUser) {
-        UserEntity existingUser = this.supportService.findById(userRepository, id, "UserEntity");
+    public @NonNull UserResponse patch(@NonNull UserPatchRequest request, @NonNull UUID id, UserEntity authenticatedUser) {
+        UserEntity existingUser = java.util.Objects.requireNonNull(this.supportService.findById(userRepository, id, "UserEntity"));
 
         // Si hay usuario autenticado, verificar que solo modifique su propia cuenta
         if (authenticatedUser != null && !authenticatedUser.getId().equals(id)) {
@@ -94,7 +98,7 @@ public class UserServices implements IUserService {
             validateAndSetLanguage(existingUser, request.getLanguageId());
         }
         if (request.hasBirthDate()) {
-            existingUser.setBirthDate(request.getBirthDate().toString());
+            existingUser.setBirthDate(request.getBirthDate());
         }
         if (request.hasCustomerType()) {
             existingUser.setCustomerType(request.getCustomerType());
@@ -103,15 +107,15 @@ public class UserServices implements IUserService {
             existingUser.setTermsVersion(request.getTermsVersion());
         }
 
-        return this.userMapper.userEntityToUserResponse(this.userRepository.save(existingUser));
+        return java.util.Objects.requireNonNull(this.userMapper.userEntityToUserResponse(java.util.Objects.requireNonNull(this.userRepository.save(existingUser))));
     }
 
-    public UserEntity getByEmail(String email) {
-        return this.userRepository.findByEmail(email)
-                .orElseThrow(() -> new IdNotFoundException("Usuario no encontrado con email: " + email));
+    public @NonNull UserEntity getByEmail(@NonNull String email) {
+        return java.util.Objects.requireNonNull(this.userRepository.findByEmail(email)
+                .orElseThrow(() -> new IdNotFoundException("Usuario no encontrado con email: " + email)));
     }
 
-    public UserResponse createUser(UserPatchRequest request) {
+    public @NonNull UserResponse createUser(@NonNull UserPatchRequest request) {
         // Validar credenciales de usuario
         userValidationService.validateUserCredentials(request.getEmail(), request.getUsername());
 
@@ -127,7 +131,7 @@ public class UserServices implements IUserService {
                 .lastName(request.getLastName())
                 .countryId(request.getCountryId())
                 .languageId(request.getLanguageId())
-                .birthDate(request.getBirthDate() != null ? request.getBirthDate().toString() : null)
+                .birthDate(request.getBirthDate())
                 .enabled(false)
                 .role(com.snapshot.chonect.utils.enums.Role.CUSTOMER)
                 .customerType(request.getCustomerType())
@@ -135,19 +139,20 @@ public class UserServices implements IUserService {
                 .verificationCode(verificationCode)
                 .verificationCodeExpireAt(expireAt)
                 .build();
-        UserEntity savedUser = createUserFromData(creationData);
+        UserEntity savedUser = java.util.Objects.requireNonNull(createUserFromData(creationData));
 
         // Enviar email de verificación
         emailService.sendVerificationEmail(savedUser.getEmail(), savedUser.getFirstName(), savedUser.getVerificationCode());
 
-        return this.userMapper.userEntityToUserResponse(savedUser);
+        return java.util.Objects.requireNonNull(this.userMapper.userEntityToUserResponse(savedUser));
     }
 
     /**
      * Método principal para crear usuario desde datos con validación de countryId y languageId
      * **AQUÍ ESTABA EL PROBLEMA ORIGINAL del countryId = 0**
      */
-    public UserEntity createUserFromData(UserCreationData data) {
+    @SuppressWarnings("null")
+    public UserEntity createUserFromData(@NonNull UserCreationData data) {
         UserEntity newUser = UserEntity.builder()
                 .username(data.getUsername())
                 .email(data.getEmail())
@@ -162,7 +167,6 @@ public class UserServices implements IUserService {
                 .verificationCodeExpireAt(data.getVerificationCodeExpireAt())
                 .build();
 
-        // **VALIDACIÓN CRÍTICA**: Verificar que countryId y languageId sean válidos antes de buscar en BD
         if (data.getCountryId() != null) {
             validateAndSetCountry(newUser, data.getCountryId());
         }
@@ -174,8 +178,8 @@ public class UserServices implements IUserService {
         if (data.getBirthDate() != null) {
             newUser.setBirthDate(data.getBirthDate());
         }
-
-        return userRepository.save(newUser);
+        
+        return Objects.requireNonNull(userRepository.save(newUser));
     }
 
     /**
@@ -186,12 +190,12 @@ public class UserServices implements IUserService {
         if (countryId == null) {
             return; // Si es null, no se asigna país
         }
-        
+
         // Validar que el UUID no sea un UUID vacío o inválido
         if (countryId.toString().equals("00000000-0000-0000-0000-000000000000")) {
             throw new BadRequestException("ID de país inválido. No se puede usar UUID vacío.");
         }
-        
+
         try {
             CountryEntity country = countryService.getById(countryId);
             user.setCountry(country);
@@ -229,7 +233,7 @@ public class UserServices implements IUserService {
         private String lastName;
         private UUID countryId;  // **CAMBIADO DE Long A UUID**
         private UUID languageId; // **CAMBIADO DE Long A UUID**
-        private String birthDate;
+        private LocalDate birthDate;
         private boolean enabled;
         private com.snapshot.chonect.utils.enums.Role role;
         private CustomerType customerType;
@@ -256,6 +260,7 @@ public class UserServices implements IUserService {
             this.verificationCodeExpireAt = builder.verificationCodeExpireAt;
         }
 
+        @NonNull
         public static Builder builder() {
             return new Builder();
         }
@@ -268,7 +273,7 @@ public class UserServices implements IUserService {
             private String lastName;
             private UUID countryId;  // **CAMBIADO DE Long A UUID**
             private UUID languageId; // **CAMBIADO DE Long A UUID**
-            private String birthDate;
+            private LocalDate birthDate;
             private boolean enabled;
             private com.snapshot.chonect.utils.enums.Role role;
             private CustomerType customerType;
@@ -311,7 +316,7 @@ public class UserServices implements IUserService {
                 return this;
             }
 
-            public Builder birthDate(String birthDate) {
+            public Builder birthDate(LocalDate birthDate) {
                 this.birthDate = birthDate;
                 return this;
             }
@@ -346,6 +351,7 @@ public class UserServices implements IUserService {
                 return this;
             }
 
+            @NonNull
             public UserCreationData build() {
                 return new UserCreationData(this);
             }
@@ -373,8 +379,8 @@ public class UserServices implements IUserService {
         public UUID getLanguageId() { return languageId; } // **CAMBIADO DE Long A UUID**
         public void setLanguageId(UUID languageId) { this.languageId = languageId; }
 
-        public String getBirthDate() { return birthDate; }
-        public void setBirthDate(String birthDate) { this.birthDate = birthDate; }
+        public LocalDate getBirthDate() { return birthDate; }
+        public void setBirthDate(LocalDate birthDate) { this.birthDate = birthDate; }
 
         public boolean isEnabled() { return enabled; }
         public void setEnabled(boolean enabled) { this.enabled = enabled; }

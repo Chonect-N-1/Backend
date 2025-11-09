@@ -9,6 +9,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.NonNull;
 import lombok.Setter;
 import java.io.Serializable;
 import java.util.UUID;
@@ -27,9 +28,11 @@ public class CountryEntity implements Serializable {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    @NonNull
     @Column(length = 100, nullable = false, unique = true)
     private String name;
 
+    @NonNull
     @Column(length = 3, nullable = false, unique = true)
     private String code; // ISO 3166-1 alpha-3 code (e.g., "COL", "USA", "ESP")
 }

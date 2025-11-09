@@ -3,7 +3,6 @@ package com.snapshot.chonect.infrastructure.services;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.lang.NonNull;
-import org.springframework.lang.Nullable;
 import com.snapshot.chonect.infrastructure.helpers.SupportService;
 import com.snapshot.chonect.utils.exceptions.EntityCreationException;
 import com.snapshot.chonect.utils.exceptions.EntityDeletionException;
@@ -23,9 +22,6 @@ public abstract class BaseCrudService<T, I, R extends JpaRepository<T, I>> {
 
     @Transactional
     public T create(@NonNull T request) {
-        if (request == null) {
-            throw new IllegalArgumentException("El request no puede ser null");
-        }
         try {
             return repository.save(request);
         } catch (Exception e) {
@@ -35,9 +31,6 @@ public abstract class BaseCrudService<T, I, R extends JpaRepository<T, I>> {
 
     @Transactional(readOnly = true)
     public T getById(@NonNull I id) {
-        if (id == null) {
-            throw new IllegalArgumentException("El id no puede ser null");
-        }
         return supportService.findById(repository, id, getEntityName());
     }
 
@@ -48,9 +41,6 @@ public abstract class BaseCrudService<T, I, R extends JpaRepository<T, I>> {
 
     @Transactional
     public void delete(@NonNull I id) {
-        if (id == null) {
-            throw new IllegalArgumentException("El id no puede ser null");
-        }
         try {
             if (!repository.existsById(id)) {
                 throw new IdNotFoundException(getEntityName() + " no encontrado: " + id);

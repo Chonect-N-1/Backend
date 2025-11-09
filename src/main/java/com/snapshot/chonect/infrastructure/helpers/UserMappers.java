@@ -38,8 +38,10 @@ public interface UserMappers {
     // si alguien ve esto quiero que sepan que no quiero ser muy mamon re haciendo el codigo,
     // solo que encontre una manera mas facil de hacerlo
 
+    @Mapping(target = "id", ignore = true)
     @Mapping(target = "username", source = "username")
-    @Mapping(target = "password", source = "email")
+    @Mapping(target = "password", source = "password")
+    @Mapping(target = "email", source = "email")
     @Mapping(target = "firstName", source = "firstName")
     @Mapping(target = "lastName", source = "lastName")
     @Mapping(target = "birthDate", source = "birthDate")

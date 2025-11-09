@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.UUID;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.lang.NonNull;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -28,7 +29,7 @@ public class CountryController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<CountryEntity> getById(@PathVariable UUID id) {
+    public ResponseEntity<CountryEntity> getById(@PathVariable @NonNull UUID id) {
         return ResponseEntity.ok(countryService.getById(id));
     }
 }

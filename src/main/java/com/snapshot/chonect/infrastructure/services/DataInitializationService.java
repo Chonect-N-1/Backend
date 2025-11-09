@@ -23,7 +23,7 @@ public class DataInitializationService implements CommandLineRunner {
         initializeCountries();
         initializeLanguages();
     }
-
+    @SuppressWarnings("null")
     private void initializeCountries() {
         if (countryRepository.count() == 0) {
             // América del Norte
@@ -111,6 +111,7 @@ public class DataInitializationService implements CommandLineRunner {
         }
     }
 
+    @SuppressWarnings("null")
     private void initializeLanguages() {
         if (languageRepository.count() == 0) {
             // Idiomas más hablados globalmente

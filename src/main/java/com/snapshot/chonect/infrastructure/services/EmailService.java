@@ -3,6 +3,7 @@ package com.snapshot.chonect.infrastructure.services;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
@@ -11,8 +12,10 @@ import com.snapshot.chonect.utils.EmailTemplateService;
 import com.snapshot.chonect.utils.exceptions.BadRequestException;
 
 import lombok.AllArgsConstructor;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 @AllArgsConstructor
@@ -85,19 +88,23 @@ public class EmailService {
         }
     }
 
+    @SuppressWarnings("null")
     private Map<String, Object> sendSingleEmail(String to, String subject, String textContent, String htmlContent, int attempt) {
         Map<String, Object> payload = createEmailPayload(to, subject, textContent, htmlContent);
-        @SuppressWarnings("unchecked")
+
         Map<String, Object> response = webClient.post()
             .uri("/emails")
             .bodyValue(payload)
             .retrieve()
-            .bodyToMono(Map.class)
+            .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
             .doOnSuccess(res -> logger.info("Email enviado exitosamente a: {} en el intento {}", to, attempt))
             .doOnError(error -> logger.warn("Error en intento {}/{} para {}: {}", attempt, MAX_RETRIES, to, error.getMessage()))
             .block();
-        return response;
+
+        return Optional.ofNullable(response).orElseGet(Collections::emptyMap);
     }
+
+
 
     private Map<String, Object> createEmailPayload(String to, String subject, String textContent, String htmlContent) {
         return Map.of(

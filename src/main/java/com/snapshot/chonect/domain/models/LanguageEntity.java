@@ -9,6 +9,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.NonNull;
 import lombok.Setter;
 import java.io.Serializable;
 import java.util.UUID;
@@ -27,9 +28,15 @@ public class LanguageEntity implements Serializable {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    @NonNull
     @Column(length = 100, nullable = false, unique = true)
     private String name;
 
+    @NonNull
     @Column(length = 3, nullable = false, unique = true)
     private String code; // ISO 639-1 code (e.g., "es", "en", "fr")
+
+    public static LanguageEntityBuilder builder() {
+        return new LanguageEntityBuilder();
+    }
 }

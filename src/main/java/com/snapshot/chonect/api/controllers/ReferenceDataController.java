@@ -11,7 +11,6 @@ import com.snapshot.chonect.api.dto.response.CountryResponse;
 import com.snapshot.chonect.api.dto.response.LanguageResponse;
 import com.snapshot.chonect.infrastructure.services.CountryService;
 import com.snapshot.chonect.infrastructure.services.LanguageService;
-import lombok.AllArgsConstructor;
 
 @RestController
 @RequestMapping(path = "/api/v1/reference-data")

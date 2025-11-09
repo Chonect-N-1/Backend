@@ -17,8 +17,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.NonNull;
 import lombok.Setter;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
@@ -65,7 +65,7 @@ public class UserEntity implements UserDetails {
     private String termsVersion;
 
     // @Column(nullable = true)
-    private String birthDate;
+    private LocalDate birthDate;
 
     private boolean enabled;
 
