@@ -41,7 +41,6 @@ public class UserServices implements IUserService {
     private static final String FIRST_NAME_NULL_MESSAGE = "firstName cannot be null";
     private static final String LAST_NAME_NULL_MESSAGE = "lastName cannot be null";
     private static final String TERMS_VERSION_NULL_MESSAGE = "termsVersion cannot be null";
-    private static final String VERIFICATION_CODE_NULL_MESSAGE = "verificationCode cannot be null";
 
     private final UserMappers userMapper;
 
@@ -292,7 +291,7 @@ public class UserServices implements IUserService {
         private com.snapshot.chonect.utils.enums.Role role;
         private CustomerType customerType;
         private @NonNull String termsVersion;
-        private @NonNull String verificationCode;
+        private String verificationCode;
         private java.time.LocalDateTime verificationCodeExpireAt;
 
         private UserCreationData(Builder builder) {
@@ -308,7 +307,7 @@ public class UserServices implements IUserService {
             this.role = builder.role;
             this.customerType = builder.customerType;
             this.termsVersion = Objects.requireNonNull(builder.termsVersion, TERMS_VERSION_NULL_MESSAGE);
-            this.verificationCode = Objects.requireNonNull(builder.verificationCode, VERIFICATION_CODE_NULL_MESSAGE);
+            this.verificationCode = builder.verificationCode;
             this.verificationCodeExpireAt = builder.verificationCodeExpireAt;
         }
 
@@ -446,8 +445,8 @@ public class UserServices implements IUserService {
         public @NonNull String getTermsVersion() { return termsVersion; }
         public void setTermsVersion(@NonNull String termsVersion) { this.termsVersion = Objects.requireNonNull(termsVersion, TERMS_VERSION_NULL_MESSAGE); }
 
-        public @NonNull String getVerificationCode() { return verificationCode; }
-        public void setVerificationCode(@NonNull String verificationCode) { this.verificationCode = Objects.requireNonNull(verificationCode, VERIFICATION_CODE_NULL_MESSAGE); }
+        public String getVerificationCode() { return verificationCode; }
+        public void setVerificationCode(String verificationCode) { this.verificationCode = verificationCode; }
 
         public java.time.LocalDateTime getVerificationCodeExpireAt() { return verificationCodeExpireAt; }
         public void setVerificationCodeExpireAt(java.time.LocalDateTime verificationCodeExpireAt) { this.verificationCodeExpireAt = verificationCodeExpireAt; }

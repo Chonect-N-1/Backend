@@ -3,10 +3,10 @@ package com.snapshot.chonect.infrastructure.services;
 import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.UUID;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.snapshot.chonect.api.dto.request.LoginUserDto;
 import com.snapshot.chonect.domain.models.UserEntity;
@@ -78,14 +78,17 @@ public class AuthenticationService {
         }
     }
 
+    @Transactional
     public void deleteUserByEmail(String email) {
-    // Busca al usuario por su email. Si no lo encuentra, lanza una excepción.
+        // Validar que el email no sea null
+        Objects.requireNonNull(email, "Email cannot be null");
+
+        // Buscar el usuario por email
         UserEntity user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new IdNotFoundException(ErrorMessages.emailNotFound("Usuario con email: " + email)));
 
-        // Si el usuario existe, lo elimina usando Objects.requireNonNull para manejar tipos nulos
-        UUID userId = user.getId();
-        userRepository.deleteById(Objects.requireNonNull(userId));
+        // Eliminar directamente la entidad (más eficiente que deleteById)
+        userRepository.delete(user);
     }
 
 

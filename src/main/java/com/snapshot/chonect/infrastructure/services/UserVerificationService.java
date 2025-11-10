@@ -110,12 +110,12 @@ public class UserVerificationService {
         }
 
         // Crear usuario real en base de datos usando el método helper
-        String username = java.util.Objects.requireNonNull(verificationData.getUsername(), "username cannot be null");
-        String userEmail = java.util.Objects.requireNonNull(verificationData.getEmail(), "email cannot be null");
-        String password = java.util.Objects.requireNonNull(verificationData.getPassword(), "password cannot be null");
-        String firstName = java.util.Objects.requireNonNull(verificationData.getFirstName(), "firstName cannot be null");
-        String lastName = java.util.Objects.requireNonNull(verificationData.getLastName(), "lastName cannot be null");
-        String termsVersion = java.util.Objects.requireNonNull(verificationData.getTermsVersion(), "termsVersion cannot be null");
+        String username = verificationData.getUsername();
+        String userEmail = verificationData.getEmail();
+        String password = verificationData.getPassword();
+        String firstName = verificationData.getFirstName();
+        String lastName = verificationData.getLastName();
+        String termsVersion = verificationData.getTermsVersion();
 
         UserServices.UserCreationData creationData = UserServices.UserCreationData.builder()
                 .username(username)

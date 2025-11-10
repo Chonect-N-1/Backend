@@ -21,7 +21,17 @@ public class ApplicationConfiguration {
 
     @Bean
     UserDetailsService userDetailsService() {
-        return username -> (UserDetails) this.userRepository.findByEmail(username).orElseThrow(() -> new IdNotFoundException(ErrorMessages.nameNotFound("Usuario")));
+        return identifier -> {
+            // Si contiene @, buscar por email
+            if (identifier.contains("@")) {
+                return (UserDetails) this.userRepository.findByEmail(identifier)
+                    .orElseThrow(() -> new IdNotFoundException(ErrorMessages.nameNotFound("Usuario")));
+            } else {
+                // Si no contiene @, buscar por username
+                return (UserDetails) this.userRepository.findByUsername(identifier)
+                    .orElseThrow(() -> new IdNotFoundException(ErrorMessages.nameNotFound("Usuario")));
+            }
+        };
     }
 
     @Bean

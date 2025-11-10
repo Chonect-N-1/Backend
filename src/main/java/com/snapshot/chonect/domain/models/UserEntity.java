@@ -49,10 +49,10 @@ public class UserEntity implements UserDetails {
     @Column(length = 100, nullable = false, unique = true)
     private String email;
 
-    @Column(length = 50, nullable = true)
+    @Column(length = 50, nullable = false)
     private String firstName;
 
-    @Column(length = 50, nullable = true)
+    @Column(length = 50, nullable = false)
     private String lastName;
 
     @Enumerated(EnumType.STRING)
