@@ -20,6 +20,8 @@ import com.snapshot.chonect.utils.VerificationCodeService;
 @Service
 public class AuthenticationService {
 
+    private static final String EMAIL_NULL_MESSAGE = "Email cannot be null";
+
     private final UserRepository userRepository;
     private final AuthenticationManager authenticationManager;
     private final EmailService emailService;
@@ -40,7 +42,7 @@ public class AuthenticationService {
 
 
     public UserEntity authenticate(LoginUserDto input) {
-        String email = Objects.requireNonNull(input.getEmail(), "Email cannot be null");
+        String email = Objects.requireNonNull(input.getEmail(), EMAIL_NULL_MESSAGE);
         UserEntity user = this.userRepository.findByUsernameOrEmail(email, email)
                 .orElseThrow(() -> new BadRequestException(ErrorMessages.nameNotFound("Usuario")));
         if (!user.isEnabled()) {
@@ -66,7 +68,7 @@ public class AuthenticationService {
             user.setVerificationCodeExpireAt(LocalDateTime.now().plusHours(1));
 
             // ✅ Verificación segura con Objects.requireNonNull
-            String safeEmail = Objects.requireNonNull(user.getEmail(), "Email cannot be null");
+            String safeEmail = Objects.requireNonNull(user.getEmail(), EMAIL_NULL_MESSAGE);
             String safeFirstName = Objects.requireNonNull(user.getFirstName(), "First name cannot be null");
             String safeVerificationCode = Objects.requireNonNull(user.getVerificationCode(), "Verification code cannot be null");
 
@@ -81,7 +83,7 @@ public class AuthenticationService {
     @Transactional
     public void deleteUserByEmail(String email) {
         // Validar que el email no sea null
-        Objects.requireNonNull(email, "Email cannot be null");
+        Objects.requireNonNull(email, EMAIL_NULL_MESSAGE);
 
         // Buscar el usuario por email
         UserEntity user = userRepository.findByEmail(email)

@@ -27,7 +27,7 @@ fi
 
 echo "🐳 Construyendo imagen de Docker..."
 # Construir la imagen
-docker build -t chonect-backend:latest .
+docker build -t carrlox/chonect-backend:latest .
 
 if [ $? -ne 0 ]; then
     echo "❌ Error al construir la imagen de Docker"

@@ -90,11 +90,31 @@ public class GlobalExceptionHandler {
                         .build());
     }
 
-    @ExceptionHandler({VerificationNotFoundException.class, VerificationExpiredException.class, InvalidVerificationCodeException.class})
-    public ResponseEntity<BaseErrorResponse> handleVerificationExceptions(RuntimeException exception) {
-        logger.warn("VerificationException: {}", exception.getMessage());
+    @ExceptionHandler(VerificationNotFoundException.class)
+    public ResponseEntity<BaseErrorResponse> handleVerificationNotFound(VerificationNotFoundException exception) {
+        logger.warn("VerificationNotFoundException: {}", exception.getMessage());
         List<String> errors = new ArrayList<>();
-        errors.add(exception.getMessage());
+        errors.add("No se encontraron datos de verificación para este email. Inicia el proceso de registro nuevamente.");
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ErrorsResponse.builder()
+                        .code(HttpStatus.NOT_FOUND.value())
+                        .status(HttpStatus.NOT_FOUND.name())
+                        .errors(errors)
+                        .build());
+    }
+
+    @ExceptionHandler({VerificationExpiredException.class, InvalidVerificationCodeException.class})
+    public ResponseEntity<BaseErrorResponse> handleVerificationErrors(RuntimeException exception) {
+        logger.warn("VerificationError: {}", exception.getMessage());
+        List<String> errors = new ArrayList<>();
+        String errorMessage = exception.getMessage();
+        if (exception instanceof VerificationExpiredException) {
+            errorMessage = "El código de verificación ha expirado (15 minutos). Solicita un nuevo código.";
+        } else if (exception instanceof InvalidVerificationCodeException) {
+            errorMessage = "Código de verificación inválido. Verifica e intenta nuevamente.";
+        }
+        errors.add(errorMessage);
 
         return ResponseEntity.badRequest()
                 .body(ErrorsResponse.builder()
