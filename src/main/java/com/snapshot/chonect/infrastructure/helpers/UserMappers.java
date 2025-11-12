@@ -33,6 +33,8 @@ public interface UserMappers {
     @Mapping(target = "customerType", source = "customerType")
     @Mapping(target = "termsVersion", source = "termsVersion")
     @Mapping(target = "birthDate", source = "birthDate")
+    @Mapping(target = "countryId", source = "country.id")
+    @Mapping(target = "languageId", source = "language.id")
     UserResponse userEntityToUserResponse(UserEntity userEntity);
 
     // si alguien ve esto quiero que sepan que no quiero ser muy mamon re haciendo el codigo,

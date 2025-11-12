@@ -24,4 +24,6 @@ public class UserResponse {
     private CustomerType customerType;
     private String termsVersion;
     private LocalDate birthDate;
+    private UUID countryId;
+    private UUID languageId;
 }

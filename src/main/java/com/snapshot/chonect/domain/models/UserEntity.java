@@ -95,6 +95,11 @@ public class UserEntity implements UserDetails {
         return List.of();
     }
 
+    @Override
+    public String getUsername(){
+        return this.email;
+    }
+
     // esto es basically un comprobante de si la cuanta sigue aun valida
     @Override
     public boolean isAccountNonExpired(){
