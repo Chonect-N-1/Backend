@@ -74,6 +74,10 @@ public class UserServices implements IUserService {
     public @NonNull UserResponse update(UserUpdateRequest userRequest, UUID id) {
         UserEntity userUpdate = java.util.Objects.requireNonNull(this.userMapper.requestUpdateToEntity(userRequest));
         userUpdate.setId(id);
+        // Encriptar la contraseña si está presente
+        if (userRequest.getPassword() != null && !userRequest.getPassword().trim().isEmpty()) {
+            userUpdate.setPassword(passwordEncoder.encode(userRequest.getPassword()));
+        }
         return java.util.Objects.requireNonNull(this.userMapper.userEntityToUserResponse(java.util.Objects.requireNonNull(this.userRepository.save(userUpdate))));
     }
 
@@ -95,7 +99,7 @@ public class UserServices implements IUserService {
             existingUser.setUsername(request.getUsername());
         }
         if (request.hasPassword()) {
-            existingUser.setPassword(request.getPassword());
+            existingUser.setPassword(passwordEncoder.encode(request.getPassword()));
         }
         if (request.hasEmail()) {
             existingUser.setEmail(request.getEmail());

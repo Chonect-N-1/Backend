@@ -1,12 +1,15 @@
 package com.snapshot.chonect.infrastructure.services;
 
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.snapshot.chonect.domain.models.CountryEntity;
 import com.snapshot.chonect.domain.models.LanguageEntity;
+import com.snapshot.chonect.domain.models.UserEntity;
 import com.snapshot.chonect.domain.repositories.CountryRepository;
 import com.snapshot.chonect.domain.repositories.LanguageRepository;
+import com.snapshot.chonect.domain.repositories.UserRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -18,10 +21,15 @@ public class DataInitializationService implements CommandLineRunner {
 
     private final LanguageRepository languageRepository;
 
+    private final UserRepository userRepository;
+
+    private final PasswordEncoder passwordEncoder;
+
     @Override
     public void run(String... args) throws Exception {
         initializeCountries();
         initializeLanguages();
+        encryptExistingPlainTextPasswords();
     }
     @SuppressWarnings("null")
     private void initializeCountries() {
@@ -137,6 +145,27 @@ public class DataInitializationService implements CommandLineRunner {
             languageRepository.save(LanguageEntity.builder().name("Turco").code("tr").build());
             languageRepository.save(LanguageEntity.builder().name("Griego").code("el").build());
             languageRepository.save(LanguageEntity.builder().name("Hebreo").code("he").build());
+        }
+    }
+
+    @SuppressWarnings("null")
+    private void encryptExistingPlainTextPasswords() {
+        // Buscar usuarios cuyas contraseñas no estén encriptadas (no empiecen con $2)
+        var usersWithPlainTextPasswords = userRepository.findAll().stream()
+                .filter(user -> user.getPassword() != null && !user.getPassword().startsWith("$2"))
+                .toList();
+
+        if (!usersWithPlainTextPasswords.isEmpty()) {
+            System.out.println("Encriptando " + usersWithPlainTextPasswords.size() + " contraseñas de usuarios existentes...");
+
+            for (UserEntity user : usersWithPlainTextPasswords) {
+                user.setPassword(passwordEncoder.encode(user.getPassword()));
+                userRepository.save(user);
+            }
+
+            System.out.println("Encriptación de contraseñas existente completada.");
+        } else {
+            System.out.println("No se encontraron contraseñas sin encriptar.");
         }
     }
 }
