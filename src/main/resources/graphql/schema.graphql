@@ -29,6 +29,8 @@ type Element {
   type: String!
   positionX: String!
   positionY: String!
+  x: String! # Alias para positionX (compatibilidad con frontend)
+  y: String! # Alias para positionY (compatibilidad con frontend)
   styles: String
   layer: ElementLayer
 }

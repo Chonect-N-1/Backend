@@ -140,8 +140,15 @@ public class GraphqlController {
     // pero le pregunte a la IA y me dijo que le diera duro jajaja
     @MutationMapping // esta es muy simple jajaj, es tan solo para mapear mutaciones.
     public ProjectEntity createProject(@Argument ProjectInput projectInput) {
+        // Obtener el usuario autenticado
+        org.springframework.security.core.Authentication authentication = org.springframework.security.core.context.SecurityContextHolder
+                .getContext().getAuthentication();
+        String email = authentication.getName();
+        com.snapshot.chonect.domain.models.UserEntity user = userServices.getByEmail(email);
+
         ProjectEntity project = new ProjectEntity();
         project.setProjectName(projectInput.getProjectName());
+        project.setUser(user); // ✅ Asignar el usuario al proyecto
 
         if (projectInput.getPages() != null) {
             for (PageInput pageInput : projectInput.getPages()) {
@@ -167,6 +174,15 @@ public class GraphqlController {
         // Buscar el proyecto existente
         ProjectEntity existingProject = projectService.getByIdWithPages(projectId)
                 .orElseThrow(() -> new IllegalArgumentException("Proyecto no encontrado con id: " + projectId));
+
+        // Verificar que el proyecto tenga un usuario asignado
+        // Si no tiene usuario (proyecto huérfano), eliminarlo automáticamente
+        if (existingProject.getUser() == null) {
+            logger.warn("Proyecto huérfano detectado (ID: {}). Eliminando automáticamente...", projectId);
+            projectService.delete(projectId);
+            throw new IllegalArgumentException(
+                    "El proyecto no tenía un usuario asignado y fue eliminado automáticamente. Por favor, crea un nuevo proyecto.");
+        }
 
         // Verificar que el usuario sea el dueño del proyecto
         if (!existingProject.getUser().getId().equals(user.getId())) {

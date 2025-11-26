@@ -15,17 +15,26 @@ public class ElementEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    
+
     private String elementId;
     private String type;
     private String positionX;
     private String positionY;
-    
+
     // El @Lob es tan solo que el objeto va a ser muy muy grande
     @Lob
     @Column(columnDefinition = "TEXT")
     private String styles;
-    
+
     @Embedded
     private ElementLayer layer;
+
+    // Aliases para compatibilidad con el frontend
+    public String getX() {
+        return this.positionX;
+    }
+
+    public String getY() {
+        return this.positionY;
+    }
 }

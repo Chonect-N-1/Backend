@@ -17,6 +17,6 @@ public interface ProjectRepository extends JpaRepository<ProjectEntity, Long> {
     @EntityGraph(attributePaths = { "pages" })
     List<ProjectEntity> findAllBy();
 
-    @EntityGraph(attributePaths = { "pages" })
+    @EntityGraph(attributePaths = { "pages", "user" })
     Optional<ProjectEntity> findWithPagesById(Long id);
 }
