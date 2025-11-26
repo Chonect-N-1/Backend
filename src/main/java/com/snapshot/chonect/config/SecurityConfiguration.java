@@ -32,77 +32,90 @@ public class SecurityConfiguration {
     @Autowired
     public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
         auth.userDetailsService(userDetailsService)
-            .passwordEncoder(passwordEncoder);
+                .passwordEncoder(passwordEncoder);
     }
 
     // francamente yo me considero medianamente inteligente
     // peeeeeero esta cosa me hace creer lo contrario
-    // sinceramente no se que hace creo que esta modificando los filtros de seguridad 
-    // que utiliza la api rest 
+    // sinceramente no se que hace creo que esta modificando los filtros de
+    // seguridad
+    // que utiliza la api rest
 
-    // conclucion: lo hizo un mago, deep seek va tener mucho trabajo pa ensenarme jjajajaja
+    // conclucion: lo hizo un mago, deep seek va tener mucho trabajo pa ensenarme
+    // jjajajaja
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-            // el csrf es una especie de protecion para evitar engaños al navegador
-            // para que realice acciones no deseadas en una aplicación en la que el usuario está autenticado.
-            .csrf(csrf ->csrf.disable())
-            // si mal no recuerdo authorizeHttpRequests sirve como middleware 
-            // puede llegar a dar errores si no se maneja bien
-            // ya que proive que las rutas sean publicas a excepcion de "/auth/login", "/auth/register"
-            // si es necesario se tiene que agregar mas a un futuro cercano
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                // el csrf es una especie de protecion para evitar engaños al navegador
+                // para que realice acciones no deseadas en una aplicación en la que el usuario
+                // está autenticado.
+                .csrf(csrf -> csrf.disable())
+                // si mal no recuerdo authorizeHttpRequests sirve como middleware
+                // puede llegar a dar errores si no se maneja bien
+                // ya que proive que las rutas sean publicas a excepcion de "/auth/login",
+                // "/auth/register"
+                // si es necesario se tiene que agregar mas a un futuro cercano
 
-            .authorizeHttpRequests(auth -> auth
-                // pero carlos si lo sacas a producion cambialo
-                    .requestMatchers(
-                        "/api/v1/auth/signup",
-                        "/api/v1/auth/login",
-                        "/api/v1/auth/verify",
-                        "/api/v1/auth/resend",
-                        "/api/v1/user/**",
-                        "/graphql/**",
-                        "/graphiql",
-                        "/graphiql/**",
-                        "/swagger-ui/**",
-                        "/v3/api-docs/**",
-                        "/swagger-ui.html"
-                    ).permitAll()
+                .authorizeHttpRequests(auth -> auth
+                        // pero carlos si lo sacas a producion cambialo
+                        .requestMatchers(
+                                "/", // Ruta raíz
+                                "/api/v1/auth/signup",
+                                "/api/v1/auth/login",
+                                "/api/v1/auth/verify",
+                                "/api/v1/auth/resend",
+                                "/api/v1/auth/initiate-verification",
+                                "/api/v1/auth/update-verification",
+                                "/api/v1/auth/verify-user",
+                                // Soporte legacy para frontend sin prefijo /api/v1
+                                "/auth/**",
+                                "/api/v1/user/**",
+                                "/graphql/**",
+                                "/graphiql",
+                                "/graphiql/**",
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**",
+                                "/swagger-ui.html")
+                        .permitAll()
 
-                    .requestMatchers(
-                        "/api/v1/auth/delete"
-                    ).authenticated()
+                        .requestMatchers(
+                                "/api/v1/auth/delete")
+                        .authenticated()
 
-                    .anyRequest().permitAll()
-            //     // .requestMatchers("/admin/**").hasRole("ADMIN")
-            //     // .requestMatchers("/user/**").hasAnyRole("USER", "ADMIN")
-                    
-            )
-            
-            // este punto vuelve stateless la aplicacion (que es volver todas las apis desconectada)
-            // la IA me mando estos comportamientos:
-            // ~ No crea sesiones HTTP en el servidor
-            // ~ No usa cookies de sesión (JSESSIONID)
-            // ~ Cada request es independiente - sin estado mantenido
-            // ~ El cliente debe enviar credenciales en cada solicitud
+                        .anyRequest().permitAll()
+                // // .requestMatchers("/admin/**").hasRole("ADMIN")
+                // // .requestMatchers("/user/**").hasAnyRole("USER", "ADMIN")
 
-            // y me viene muy bien con la implementacion de Graphql, en cualquier caso
-            // cambio la app a stateful que esta por defecto
-            .sessionManagement(session -> session
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                )
 
-            // estas dos ultimas son solo para implementar el filtro jwt
-            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                // este punto vuelve stateless la aplicacion (que es volver todas las apis
+                // desconectada)
+                // la IA me mando estos comportamientos:
+                // ~ No crea sesiones HTTP en el servidor
+                // ~ No usa cookies de sesión (JSESSIONID)
+                // ~ Cada request es independiente - sin estado mantenido
+                // ~ El cliente debe enviar credenciales en cada solicitud
+
+                // y me viene muy bien con la implementacion de Graphql, en cualquier caso
+                // cambio la app a stateful que esta por defecto
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+
+                // estas dos ultimas son solo para implementar el filtro jwt
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 
     @Bean
-    public CorsConfigurationSource corsConfigurationSource (){
+    public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        // no me gusta mucho dejar los datos asi de expuestos pero creo que son temporales 
-        configuration.setAllowedOrigins(List.of("http://localhost:5173", "http://localhost:8080", "https://chonect-n-1.onrender.com"));
+        // no me gusta mucho dejar los datos asi de expuestos pero creo que son
+        // temporales
+        configuration.setAllowedOrigins(
+                List.of("http://localhost:5173", "http://localhost:8080", "https://chonect-n-1.onrender.com"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE"));
-        configuration.setAllowedHeaders(List.of("*"));  // ← AGREGAR ESTO
+        configuration.setAllowedHeaders(List.of("*")); // ← AGREGAR ESTO
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);
 

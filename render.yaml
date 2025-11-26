@@ -1,26 +1,11 @@
 services:
   - type: web
     name: chonect-backend
-    env: java
-    # Usar imagen de Docker Hub en lugar de construir
-    imageUrl: carrlox/chonect-backend:latest
-    port: 8080
+    env: docker
+    # Usar imagen de Docker Hub
+    image:
+      name: carrlox/chonect-backend:latest
     healthCheckPath: /actuator/health
-    autoDeploy: false
-    envVars:
-      - key: SPRING_PROFILES_ACTIVE
-        value: prod
-      - key: SPRING_DATASOURCE_URL
-        generateValue: true
-      - key: SPRING_DATASOURCE_USERNAME
-        generateValue: true
-      - key: SPRING_DATASOURCE_PASSWORD
-        generateValue: true
-      - key: SPRING_JPA_HIBERNATE_DDL_AUTO
-        value: update
-      - key: SPRING_JPA_DATABASE_PLATFORM
-        value: org.hibernate.dialect.MySQLDialect
-
-      # Variables para correo (Resend API) - Usar secreto para seguridad
-      - key: RESEND_API_KEY
-        fromSecret: resend-api-key
+    autoDeploy: true
+    # Las variables de entorno se configuran en Render Dashboard
+    # No es necesario duplicarlas aquí
