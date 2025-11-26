@@ -7,4 +7,5 @@ import com.snapshot.chonect.domain.models.ElementEntity;
 
 @Repository
 public interface ElementRepository extends JpaRepository<ElementEntity, Long> {
+    java.util.Optional<ElementEntity> findByElementId(String elementId);
 }

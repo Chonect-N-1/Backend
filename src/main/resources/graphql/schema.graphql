@@ -103,4 +103,11 @@ type Query {
 type Mutation {
   createProject(projectInput: ProjectInput!): Project
   updateProject(projectId: ID!, projectInput: ProjectInput!): Project
+  updateElementPosition(
+    elementId: String!
+    positionX: String!
+    positionY: String!
+  ): Element
+  updateElementStyles(elementId: String!, styles: String!): Element
+  updateElement(elementId: String!, elementInput: ElementInput!): Element
 }

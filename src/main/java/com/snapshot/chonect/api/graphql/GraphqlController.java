@@ -16,6 +16,7 @@ import com.snapshot.chonect.domain.models.ElementEntity;
 import com.snapshot.chonect.domain.models.PageEntity;
 import com.snapshot.chonect.domain.models.ProjectEntity;
 import com.snapshot.chonect.infrastructure.services.ProjectService;
+import com.snapshot.chonect.domain.repositories.ElementRepository;
 import com.snapshot.chonect.utils.objects.ElementLayer;
 import com.snapshot.chonect.utils.objects.PageConfig;
 
@@ -37,6 +38,7 @@ public class GraphqlController {
 
     private final com.snapshot.chonect.infrastructure.services.UserServices userServices;
     private final ProjectService projectService;
+    private final ElementRepository elementRepository;
 
     // esta etiqueta @QueryMapping es usada para mapear las consultas a la API
     // GraphQL
@@ -200,6 +202,50 @@ public class GraphqlController {
         logger.info("Proyecto actualizado: {}", existingProject);
 
         return projectService.create(existingProject);
+    }
+
+    @MutationMapping
+    public ElementEntity updateElementPosition(@Argument String elementId, @Argument String positionX,
+            @Argument String positionY) {
+        ElementEntity element = elementRepository.findByElementId(elementId)
+                .orElseThrow(() -> new RuntimeException("Element not found with id: " + elementId));
+
+        element.setPositionX(positionX);
+        element.setPositionY(positionY);
+
+        return elementRepository.save(element);
+    }
+
+    @MutationMapping
+    public ElementEntity updateElementStyles(@Argument String elementId, @Argument String styles) {
+        ElementEntity element = elementRepository.findByElementId(elementId)
+                .orElseThrow(() -> new RuntimeException("Element not found with id: " + elementId));
+
+        element.setStyles(styles);
+
+        return elementRepository.save(element);
+    }
+
+    @MutationMapping
+    public ElementEntity updateElement(@Argument String elementId, @Argument ElementInput elementInput) {
+        ElementEntity element = elementRepository.findByElementId(elementId)
+                .orElseThrow(() -> new RuntimeException("Element not found with id: " + elementId));
+
+        element.setType(elementInput.getType());
+        element.setPositionX(elementInput.getPositionX());
+        element.setPositionY(elementInput.getPositionY());
+        element.setStyles(elementInput.getStyles());
+
+        if (elementInput.getLayer() != null) {
+            if (element.getLayer() == null) {
+                element.setLayer(new ElementLayer());
+            }
+            element.getLayer().setLocked(elementInput.getLayer().getLocked());
+            element.getLayer().setZIndex(elementInput.getLayer().getZIndex());
+            element.getLayer().setVisible(elementInput.getLayer().getVisible());
+        }
+
+        return elementRepository.save(element);
     }
 
     // oe si se puede hacer mejor me explican que estoy francamente un poco idiota
