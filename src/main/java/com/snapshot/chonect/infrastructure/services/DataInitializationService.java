@@ -1,5 +1,7 @@
 package com.snapshot.chonect.infrastructure.services;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -24,6 +26,8 @@ public class DataInitializationService implements CommandLineRunner {
     private final UserRepository userRepository;
 
     private final PasswordEncoder passwordEncoder;
+
+    private static final Logger logger = LoggerFactory.getLogger(DataInitializationService.class);
 
     @Override
     public void run(String... args) throws Exception {
@@ -156,16 +160,16 @@ public class DataInitializationService implements CommandLineRunner {
                 .toList();
 
         if (!usersWithPlainTextPasswords.isEmpty()) {
-            System.out.println("Encriptando " + usersWithPlainTextPasswords.size() + " contraseñas de usuarios existentes...");
+            logger.info("Encriptando {} contraseñas de usuarios existentes...", usersWithPlainTextPasswords.size());
 
             for (UserEntity user : usersWithPlainTextPasswords) {
                 user.setPassword(passwordEncoder.encode(user.getPassword()));
                 userRepository.save(user);
             }
 
-            System.out.println("Encriptación de contraseñas existente completada.");
+            logger.info("Encriptación de contraseñas existente completada.");
         } else {
-            System.out.println("No se encontraron contraseñas sin encriptar.");
+            logger.info("No se encontraron contraseñas sin encriptar.");
         }
     }
 }

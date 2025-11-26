@@ -1,0 +1,106 @@
+type Project {
+  id: ID!
+  projectName: String!
+  description: String
+  pages: [Page]
+}
+
+type Page {
+  id: ID!
+  pageName: String!
+  config: PageConfig
+  canvas: Canvas
+}
+
+type PageConfig {
+  grid: String
+  backgroundColor: String
+}
+
+type Canvas {
+  id: ID!
+  elements: [Element]
+  connections: [Connection]
+}
+
+type Element {
+  id: ID!
+  elementId: String!
+  type: String!
+  positionX: String!
+  positionY: String!
+  styles: String
+  layer: ElementLayer
+}
+
+type ElementLayer {
+  locked: Boolean
+  zIndex: Int
+  visible: Boolean
+}
+
+type Connection {
+  id: ID!
+  fromElementId: String!
+  toElementId: String!
+  actionType: String!
+  orderNum: Int
+  delay: Int
+  isParallel: Boolean
+}
+
+input ProjectInput {
+  projectName: String!
+  description: String
+  pages: [PageInput]
+}
+
+input PageInput {
+  pageName: String!
+  config: PageConfigInput
+  canvas: CanvasInput
+}
+
+input PageConfigInput {
+  grid: String
+  backgroundColor: String
+}
+
+input CanvasInput {
+  elements: [ElementInput]
+  connections: [ConnectionInput]
+}
+
+input ElementInput {
+  elementId: String!
+  type: String!
+  positionX: String!
+  positionY: String!
+  styles: String
+  layer: ElementLayerInput
+}
+
+input ElementLayerInput {
+  locked: Boolean
+  zIndex: Int
+  visible: Boolean
+}
+
+input ConnectionInput {
+  fromElementId: String!
+  toElementId: String!
+  actionType: String!
+  orderNum: Int
+  delay: Int
+  isParallel: Boolean
+}
+
+type Query {
+  findProjectById(id: ID!): Project
+  findAllProjects: [Project]
+}
+
+type Mutation {
+  createProject(projectInput: ProjectInput!): Project
+  updateProject(projectId: ID!, projectInput: ProjectInput!): Project
+}

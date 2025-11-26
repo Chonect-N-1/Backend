@@ -35,17 +35,21 @@ public class GraphqlController {
 
     private static final Logger logger = LoggerFactory.getLogger(GraphqlController.class);
 
+    private final com.snapshot.chonect.infrastructure.services.UserServices userServices;
     private final ProjectService projectService;
 
-    // esta etiqueta @QueryMapping es usada para mapear las consultas a la API GraphQL
+    // esta etiqueta @QueryMapping es usada para mapear las consultas a la API
+    // GraphQL
     @QueryMapping
-    public ProjectEntity findProjectById(@Argument @NonNull Long id) { // El @Argument sirve pa mapear argumentos individuales
-        return projectService.getById(id);
+    public ProjectEntity findProjectById(@Argument @NonNull Long id) { // El @Argument sirve pa mapear argumentos
+                                                                       // individuales
+        return projectService.getByIdWithPages(id)
+                .orElseThrow(() -> new RuntimeException("Project not found with id: " + id));
     }
-    
+
     @QueryMapping
     public List<ProjectEntity> findAllProjects() {
-        return projectService.getAll();
+        return projectService.getAllWithPages();
     }
 
     private PageEntity createPageFromInput(PageInput pageInput, ProjectEntity project) {
@@ -129,7 +133,8 @@ public class GraphqlController {
         return connection;
     }
 
-    // esta es una querry demasiado grande. no se si es la mejor practica, voy casi a ciegas
+    // esta es una querry demasiado grande. no se si es la mejor practica, voy casi
+    // a ciegas
     // pero le pregunte a la IA y me dijo que le diera duro jajaja
     @MutationMapping // esta es muy simple jajaj, es tan solo para mapear mutaciones.
     public ProjectEntity createProject(@Argument ProjectInput projectInput) {
@@ -147,5 +152,56 @@ public class GraphqlController {
         logger.info("El proyecto está creado.");
 
         return projectService.create(project);
-    } // oe si se puede hacer mejor me explican que estoy francamente un poco idiota en este momento jajaja, me duele el celebelo
+    }
+
+    @MutationMapping
+    public ProjectEntity updateProject(@Argument @NonNull Long projectId, @Argument ProjectInput projectInput) {
+        // Obtener el usuario autenticado
+        org.springframework.security.core.Authentication authentication = org.springframework.security.core.context.SecurityContextHolder
+                .getContext().getAuthentication();
+        String email = authentication.getName();
+        com.snapshot.chonect.domain.models.UserEntity user = userServices.getByEmail(email);
+
+        // Buscar el proyecto existente
+        ProjectEntity existingProject = projectService.getByIdWithPages(projectId)
+                .orElseThrow(() -> new IllegalArgumentException("Proyecto no encontrado con id: " + projectId));
+
+        // Verificar que el usuario sea el dueño del proyecto
+        if (!existingProject.getUser().getId().equals(user.getId())) {
+            throw new IllegalArgumentException("No tienes permiso para editar este proyecto");
+        }
+
+        // Validar nombre
+        if (projectInput.getProjectName() == null || projectInput.getProjectName().trim().isEmpty()) {
+            throw new IllegalArgumentException("El nombre del proyecto no puede estar vacío");
+        }
+
+        // Verificar unicidad del nombre solo si cambió
+        if (!existingProject.getProjectName().equals(projectInput.getProjectName())
+                && projectService.existsByNameAndUser(projectInput.getProjectName(), user)) {
+            throw new IllegalArgumentException("Ya tienes un proyecto con este nombre");
+        }
+
+        // Actualizar campos básicos
+        existingProject.setProjectName(projectInput.getProjectName());
+        existingProject.setDescription(projectInput.getDescription());
+
+        // Limpiar páginas existentes (orphanRemoval = true las eliminará de la BD)
+        existingProject.getPages().clear();
+
+        // Agregar nuevas páginas
+        if (projectInput.getPages() != null) {
+            for (PageInput pageInput : projectInput.getPages()) {
+                PageEntity page = createPageFromInput(pageInput, existingProject);
+                existingProject.getPages().add(page);
+            }
+        }
+
+        logger.info("Proyecto actualizado: {}", existingProject);
+
+        return projectService.create(existingProject);
+    }
+
+    // oe si se puede hacer mejor me explican que estoy francamente un poco idiota
+    // en este momento jajaja, me duele el celebelo
 }
