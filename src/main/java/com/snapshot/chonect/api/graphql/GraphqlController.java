@@ -12,6 +12,9 @@ import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+
 import com.snapshot.chonect.domain.models.CanvasEntity;
 import com.snapshot.chonect.domain.models.ConnectionEntity;
 import com.snapshot.chonect.domain.models.ElementEntity;
@@ -37,6 +40,9 @@ import lombok.RequiredArgsConstructor;
 public class GraphqlController {
 
     private static final Logger logger = LoggerFactory.getLogger(GraphqlController.class);
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     private final com.snapshot.chonect.infrastructure.services.UserServices userServices;
     private final ProjectService projectService;
@@ -345,7 +351,12 @@ public class GraphqlController {
                             UUID pageId = UUID.fromString(pageInput.getId());
                             inputPagesMap.put(pageId, pageInput);
                         } catch (IllegalArgumentException e) {
-                            logger.warn("ID de página inválido: {}", pageInput.getId());
+                            // ID temporal del frontend (no es UUID válido)
+                            // Tratar como página nueva
+                            logger.debug(
+                                    "ID de página no es UUID válido (probablemente ID temporal): {}. Tratando como página nueva.",
+                                    pageInput.getId());
+                            newPages.add(pageInput);
                         }
                     } else {
                         newPages.add(pageInput);
@@ -384,25 +395,70 @@ public class GraphqlController {
             }
 
             logger.info("Proyecto actualizado: {}", existingProject);
+            logger.debug("Páginas antes del flush: {}", existingProject.getPages().size());
 
-            // NO llamar a projectService.update() para evitar OptimisticLockException
-            // La transacción @Transactional del método se encargará de persistir los
-            // cambios
+            // Flush explícito para asegurar que todos los cambios se persisten
+            // Esto garantiza que los elementos nuevos obtengan IDs generados por la base de
+            // datos
+            entityManager.flush();
+            logger.debug("Flush completado");
+
+            // CRÍTICO: Limpiar el contexto de persistencia para forzar recarga
+            // Esto asegura que las colecciones lazy se recarguen con los datos más
+            // recientes
+            entityManager.clear();
+            logger.debug("EntityManager cleared");
+
+            // Re-fetch del proyecto con todas sus relaciones
+            ProjectEntity refreshedProject = projectService.getByIdWithPages(id)
+                    .orElseThrow(() -> new IllegalArgumentException("Proyecto no encontrado después del flush"));
 
             // Forzar inicialización de relaciones Lazy para evitar
             // LazyInitializationException
-            if (existingProject.getPages() != null) {
-                existingProject.getPages().forEach(page -> {
+            if (refreshedProject.getPages() != null) {
+                logger.debug("=== INICIANDO VERIFICACIÓN DE PÁGINAS Y ELEMENTOS ===");
+                logger.debug("Total de páginas: {}", refreshedProject.getPages().size());
+
+                refreshedProject.getPages().forEach(page -> {
+                    logger.debug("Página ID: {}, Nombre: '{}'", page.getId(), page.getPageName());
+
                     if (page.getCanvas() != null) {
-                        if (page.getCanvas().getElements() != null)
-                            page.getCanvas().getElements().size();
-                        if (page.getCanvas().getConnections() != null)
+                        logger.debug("  Canvas ID: {}", page.getCanvas().getId());
+
+                        if (page.getCanvas().getElements() != null) {
+                            int elementCount = page.getCanvas().getElements().size();
+                            logger.debug("  Elementos count: {}", elementCount);
+
+                            if (elementCount > 0) {
+                                page.getCanvas().getElements().forEach(element -> {
+                                    logger.debug("    - Element [ID: {}, ElementId: {}, Type: {}, Position: ({}, {})]",
+                                            element.getId(),
+                                            element.getElementId(),
+                                            element.getType(),
+                                            element.getPositionX(),
+                                            element.getPositionY());
+                                });
+                            } else {
+                                logger.warn("  ⚠️ Canvas existe pero colección de elementos está VACÍA");
+                            }
+                        } else {
+                            logger.warn("  ⚠️ Canvas existe pero elementos es NULL");
+                        }
+
+                        if (page.getCanvas().getConnections() != null) {
+                            int connectionCount = page.getCanvas().getConnections().size();
+                            logger.debug("  Conexiones count: {}", connectionCount);
                             page.getCanvas().getConnections().size();
+                        }
+                    } else {
+                        logger.warn("  ⚠️ Página NO tiene canvas asociado");
                     }
                 });
+
+                logger.debug("=== FIN VERIFICACIÓN ===");
             }
 
-            return existingProject;
+            return refreshedProject;
 
         } catch (Exception e) {
             logger.error("Error actualizando proyecto: ", e);
