@@ -6,11 +6,12 @@ import com.snapshot.chonect.domain.models.PageEntity;
 import com.snapshot.chonect.domain.repositories.PageRepository;
 import com.snapshot.chonect.infrastructure.abstract_services.IPageService;
 import com.snapshot.chonect.infrastructure.helpers.SupportService;
+import java.util.UUID;
 
 @Service
-public class PageService extends BaseCrudService<PageEntity, Long, PageRepository> implements IPageService {
+public class PageService extends BaseCrudService<PageEntity, UUID, PageRepository> implements IPageService {
 
-    public PageService(PageRepository repository, SupportService<PageEntity, Long> supportService) {
+    public PageService(PageRepository repository, SupportService<PageEntity, UUID> supportService) {
         super(repository, supportService);
     }
 

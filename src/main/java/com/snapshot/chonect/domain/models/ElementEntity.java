@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
+import java.util.UUID;
 
 @Entity(name = "element")
 @Data
@@ -13,8 +14,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class ElementEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     private String elementId;
     private String type;

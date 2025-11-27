@@ -6,11 +6,12 @@ import com.snapshot.chonect.domain.models.ElementEntity;
 import com.snapshot.chonect.domain.repositories.ElementRepository;
 import com.snapshot.chonect.infrastructure.abstract_services.IElementService;
 import com.snapshot.chonect.infrastructure.helpers.SupportService;
+import java.util.UUID;
 
 @Service
-public class ElementService extends BaseCrudService<ElementEntity, Long, ElementRepository> implements IElementService {
+public class ElementService extends BaseCrudService<ElementEntity, UUID, ElementRepository> implements IElementService {
 
-    public ElementService(ElementRepository repository, SupportService<ElementEntity, Long> supportService) {
+    public ElementService(ElementRepository repository, SupportService<ElementEntity, UUID> supportService) {
         super(repository, supportService);
     }
 

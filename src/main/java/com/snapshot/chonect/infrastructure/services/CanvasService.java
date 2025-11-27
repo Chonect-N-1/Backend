@@ -6,11 +6,12 @@ import com.snapshot.chonect.domain.models.CanvasEntity;
 import com.snapshot.chonect.domain.repositories.CanvasRepository;
 import com.snapshot.chonect.infrastructure.abstract_services.ICanvasService;
 import com.snapshot.chonect.infrastructure.helpers.SupportService;
+import java.util.UUID;
 
 @Service
-public class CanvasService extends BaseCrudService<CanvasEntity, Long, CanvasRepository> implements ICanvasService {
+public class CanvasService extends BaseCrudService<CanvasEntity, UUID, CanvasRepository> implements ICanvasService {
 
-    public CanvasService(CanvasRepository repository, SupportService<CanvasEntity, Long> supportService) {
+    public CanvasService(CanvasRepository repository, SupportService<CanvasEntity, UUID> supportService) {
         super(repository, supportService);
     }
 

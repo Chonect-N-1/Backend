@@ -5,12 +5,12 @@ import com.snapshot.chonect.infrastructure.abstract_services.basic_abstract_serv
 import com.snapshot.chonect.infrastructure.abstract_services.basic_abstract_services.DeleteService;
 import com.snapshot.chonect.infrastructure.abstract_services.basic_abstract_services.GetAllService;
 import com.snapshot.chonect.infrastructure.abstract_services.basic_abstract_services.GetByIdService;
+import java.util.UUID;
 
 public interface IPageService extends
-    CreateService<PageEntity, PageEntity>,
-    GetByIdService<PageEntity, Long>,
-    GetAllService<PageEntity>,
-    DeleteService<Long>
-{
-    
+        CreateService<PageEntity, PageEntity>,
+        GetByIdService<PageEntity, UUID>,
+        GetAllService<PageEntity>,
+        DeleteService<UUID> {
+
 }

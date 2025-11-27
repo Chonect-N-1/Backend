@@ -9,14 +9,15 @@ import com.snapshot.chonect.domain.models.UserEntity;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
-public interface ProjectRepository extends JpaRepository<ProjectEntity, Long> {
+public interface ProjectRepository extends JpaRepository<ProjectEntity, UUID> {
     boolean existsByProjectNameAndUser(String projectName, UserEntity user);
 
     @EntityGraph(attributePaths = { "pages" })
     List<ProjectEntity> findAllBy();
 
     @EntityGraph(attributePaths = { "pages", "user" })
-    Optional<ProjectEntity> findWithPagesById(Long id);
+    Optional<ProjectEntity> findWithPagesById(UUID id);
 }

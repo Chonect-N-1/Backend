@@ -9,14 +9,15 @@ import com.snapshot.chonect.domain.models.ProjectEntity;
 import com.snapshot.chonect.domain.repositories.ProjectRepository;
 import com.snapshot.chonect.infrastructure.abstract_services.IProjectService;
 import com.snapshot.chonect.infrastructure.helpers.SupportService;
+import java.util.UUID;
 
 @Service
-public class ProjectService extends BaseCrudService<ProjectEntity, Long, ProjectRepository> implements IProjectService {
+public class ProjectService extends BaseCrudService<ProjectEntity, UUID, ProjectRepository> implements IProjectService {
 
     @PersistenceContext
     private EntityManager entityManager;
 
-    public ProjectService(ProjectRepository repository, SupportService<ProjectEntity, Long> supportService) {
+    public ProjectService(ProjectRepository repository, SupportService<ProjectEntity, UUID> supportService) {
         super(repository, supportService);
     }
 
@@ -33,7 +34,7 @@ public class ProjectService extends BaseCrudService<ProjectEntity, Long, Project
         return repository.findAllBy();
     }
 
-    public java.util.Optional<ProjectEntity> getByIdWithPages(Long id) {
+    public java.util.Optional<ProjectEntity> getByIdWithPages(UUID id) {
         return repository.findWithPagesById(id);
     }
 

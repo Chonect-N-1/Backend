@@ -1,6 +1,7 @@
 package com.snapshot.chonect.api.graphql;
 
 import java.util.List;
+import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,6 +10,7 @@ import org.springframework.graphql.data.method.annotation.MutationMapping;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.snapshot.chonect.domain.models.CanvasEntity;
 import com.snapshot.chonect.domain.models.ConnectionEntity;
@@ -43,15 +45,58 @@ public class GraphqlController {
     // esta etiqueta @QueryMapping es usada para mapear las consultas a la API
     // GraphQL
     @QueryMapping
-    public ProjectEntity findProjectById(@Argument @NonNull Long id) { // El @Argument sirve pa mapear argumentos
-                                                                       // individuales
-        return projectService.getByIdWithPages(id)
-                .orElseThrow(() -> new RuntimeException("Project not found with id: " + id));
+    @Transactional
+    public ProjectEntity findProjectById(@Argument @NonNull String id) {
+        try {
+            // Convertir id de String a UUID
+            UUID projectId;
+            try {
+                projectId = UUID.fromString(id);
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException("ID de proyecto inválido: " + id);
+            }
+
+            ProjectEntity project = projectService.getByIdWithPages(projectId)
+                    .orElseThrow(() -> new RuntimeException("Project not found with id: " + id));
+
+            // Forzar inicialización de relaciones Lazy
+            if (project.getPages() != null) {
+                project.getPages().forEach(page -> {
+                    if (page.getCanvas() != null) {
+                        if (page.getCanvas().getElements() != null)
+                            page.getCanvas().getElements().size();
+                        if (page.getCanvas().getConnections() != null)
+                            page.getCanvas().getConnections().size();
+                    }
+                });
+            }
+
+            logger.info("Proyecto encontrado y procesado, retornando...");
+            return project;
+        } catch (Exception e) {
+            logger.error("Error buscando proyecto: ", e);
+            throw e;
+        }
     }
 
     @QueryMapping
+    @Transactional
     public List<ProjectEntity> findAllProjects() {
-        return projectService.getAllWithPages();
+        List<ProjectEntity> projects = projectService.getAllWithPages();
+        // Inicializar relaciones lazy
+        projects.forEach(project -> {
+            if (project.getPages() != null) {
+                project.getPages().forEach(page -> {
+                    if (page.getCanvas() != null) {
+                        if (page.getCanvas().getElements() != null)
+                            page.getCanvas().getElements().size();
+                        if (page.getCanvas().getConnections() != null)
+                            page.getCanvas().getConnections().size();
+                    }
+                });
+            }
+        });
+        return projects;
     }
 
     private PageEntity createPageFromInput(PageInput pageInput, ProjectEntity project) {
@@ -78,7 +123,11 @@ public class GraphqlController {
     }
 
     private void setCanvas(PageEntity page, PageInput pageInput) {
-        CanvasEntity canvas = new CanvasEntity();
+        CanvasEntity canvas = page.getCanvas();
+        if (canvas == null) {
+            canvas = new CanvasEntity();
+            page.setCanvas(canvas);
+        }
 
         if (pageInput.getCanvas().getElements() != null) {
             addElementsToCanvas(canvas, pageInput.getCanvas().getElements());
@@ -87,22 +136,91 @@ public class GraphqlController {
         if (pageInput.getCanvas().getConnections() != null) {
             addConnectionsToCanvas(canvas, pageInput.getCanvas().getConnections());
         }
-
-        page.setCanvas(canvas);
     }
 
     private void addElementsToCanvas(CanvasEntity canvas, List<ElementInput> elements) {
-        elements.forEach(elementInput -> {
-            ElementEntity element = createElementFromInput(elementInput);
-            canvas.getElements().add(element);
-        });
+        // Crear mapa de elementos del input por elementId
+        java.util.Map<String, ElementInput> inputElementsMap = new java.util.HashMap<>();
+        for (ElementInput elementInput : elements) {
+            inputElementsMap.put(elementInput.getElementId(), elementInput);
+        }
+
+        // Actualizar elementos existentes o marcar para borrado
+        java.util.Iterator<ElementEntity> iterator = canvas.getElements().iterator();
+        while (iterator.hasNext()) {
+            ElementEntity existingElement = iterator.next();
+            ElementInput elementInput = inputElementsMap.get(existingElement.getElementId());
+
+            if (elementInput != null) {
+                // Actualizar elemento existente
+                existingElement.setType(elementInput.getType());
+                existingElement.setPositionX(elementInput.getPositionX());
+                existingElement.setPositionY(elementInput.getPositionY());
+                existingElement.setStyles(elementInput.getStyles());
+
+                if (elementInput.getLayer() != null) {
+                    if (existingElement.getLayer() == null) {
+                        existingElement.setLayer(new ElementLayer());
+                    }
+                    existingElement.getLayer().setLocked(elementInput.getLayer().getLocked());
+                    existingElement.getLayer().setZIndex(elementInput.getLayer().getZIndex());
+                    existingElement.getLayer().setVisible(elementInput.getLayer().getVisible());
+                } else {
+                    existingElement.setLayer(null);
+                }
+
+                // Marcar como procesado
+                inputElementsMap.remove(existingElement.getElementId());
+            } else {
+                // Borrar elemento que ya no está en el input
+                iterator.remove();
+            }
+        }
+
+        // Agregar elementos nuevos (los que quedaron en el mapa)
+        for (ElementInput newElementInput : inputElementsMap.values()) {
+            ElementEntity newElement = createElementFromInput(newElementInput);
+            canvas.getElements().add(newElement);
+        }
     }
 
     private void addConnectionsToCanvas(CanvasEntity canvas, List<ConnectionInput> connections) {
-        connections.forEach(connectionInput -> {
-            ConnectionEntity connection = createConnectionFromInput(connectionInput);
-            canvas.getConnections().add(connection);
-        });
+        // Crear un comparador único para conexiones (fromElementId + toElementId +
+        // actionType)
+        java.util.Map<String, ConnectionInput> inputConnectionsMap = new java.util.HashMap<>();
+        for (ConnectionInput connInput : connections) {
+            String key = connInput.getFromElementId() + "-" + connInput.getToElementId() + "-"
+                    + connInput.getActionType();
+            inputConnectionsMap.put(key, connInput);
+        }
+
+        // Actualizar conexiones existentes o marcar para borrado
+        java.util.Iterator<ConnectionEntity> iterator = canvas.getConnections().iterator();
+        while (iterator.hasNext()) {
+            ConnectionEntity existingConn = iterator.next();
+            String key = existingConn.getFromElementId() + "-" + existingConn.getToElementId() + "-"
+                    + existingConn.getActionType();
+            ConnectionInput connInput = inputConnectionsMap.get(key);
+
+            if (connInput != null) {
+                // Actualizar conexión existente
+                existingConn.setOrderNum(connInput.getOrderNum());
+                existingConn.setDelay(connInput.getDelay());
+                existingConn.setIsParallel(connInput.getIsParallel());
+
+                // Marcar como procesado
+                inputConnectionsMap.remove(key);
+            } else {
+                // Borrar conexión que ya no está en el input
+                iterator.remove();
+            }
+        }
+
+        // Agregar conexiones nuevas (las que quedaron en el mapa)
+        for (ConnectionInput newConnInput : inputConnectionsMap.values()) {
+            ConnectionEntity newConn = createConnectionFromInput(newConnInput);
+            canvas.getConnections().add(newConn);
+        }
     }
 
     private ElementEntity createElementFromInput(ElementInput elementInput) {
@@ -164,60 +282,132 @@ public class GraphqlController {
     }
 
     @MutationMapping
-    public ProjectEntity updateProject(@Argument @NonNull Long projectId, @Argument ProjectInput projectInput) {
-        // Obtener el usuario autenticado
-        org.springframework.security.core.Authentication authentication = org.springframework.security.core.context.SecurityContextHolder
-                .getContext().getAuthentication();
-        String email = authentication.getName();
-        com.snapshot.chonect.domain.models.UserEntity user = userServices.getByEmail(email);
+    @Transactional
+    public ProjectEntity updateProject(@Argument @NonNull String projectId, @Argument ProjectInput projectInput) {
+        try {
+            // Obtener el usuario autenticado
+            org.springframework.security.core.Authentication authentication = org.springframework.security.core.context.SecurityContextHolder
+                    .getContext().getAuthentication();
+            String email = authentication.getName();
+            com.snapshot.chonect.domain.models.UserEntity user = userServices.getByEmail(email);
 
-        // Buscar el proyecto existente
-        ProjectEntity existingProject = projectService.getByIdWithPages(projectId)
-                .orElseThrow(() -> new IllegalArgumentException("Proyecto no encontrado con id: " + projectId));
-
-        // Verificar que el proyecto tenga un usuario asignado
-        // Si no tiene usuario (proyecto huérfano), eliminarlo automáticamente
-        if (existingProject.getUser() == null) {
-            logger.warn("Proyecto huérfano detectado (ID: {}). Eliminando automáticamente...", projectId);
-            projectService.delete(projectId);
-            throw new IllegalArgumentException(
-                    "El proyecto no tenía un usuario asignado y fue eliminado automáticamente. Por favor, crea un nuevo proyecto.");
-        }
-
-        // Verificar que el usuario sea el dueño del proyecto
-        if (!existingProject.getUser().getId().equals(user.getId())) {
-            throw new IllegalArgumentException("No tienes permiso para editar este proyecto");
-        }
-
-        // Validar nombre
-        if (projectInput.getProjectName() == null || projectInput.getProjectName().trim().isEmpty()) {
-            throw new IllegalArgumentException("El nombre del proyecto no puede estar vacío");
-        }
-
-        // Verificar unicidad del nombre solo si cambió
-        if (!existingProject.getProjectName().equals(projectInput.getProjectName())
-                && projectService.existsByNameAndUser(projectInput.getProjectName(), user)) {
-            throw new IllegalArgumentException("Ya tienes un proyecto con este nombre");
-        }
-
-        // Actualizar campos básicos
-        existingProject.setProjectName(projectInput.getProjectName());
-        existingProject.setDescription(projectInput.getDescription());
-
-        // Limpiar páginas existentes (orphanRemoval = true las eliminará de la BD)
-        existingProject.getPages().clear();
-
-        // Agregar nuevas páginas
-        if (projectInput.getPages() != null) {
-            for (PageInput pageInput : projectInput.getPages()) {
-                PageEntity page = createPageFromInput(pageInput, existingProject);
-                existingProject.getPages().add(page);
+            // Convertir projectId de String a UUID
+            UUID id;
+            try {
+                id = UUID.fromString(projectId);
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException("ID de proyecto inválido: " + projectId);
             }
+
+            // Buscar el proyecto existente
+            ProjectEntity existingProject = projectService.getByIdWithPages(id)
+                    .orElseThrow(() -> new IllegalArgumentException("Proyecto no encontrado con id: " + projectId));
+
+            // Verificar que el proyecto tenga un usuario asignado
+            // Si no tiene usuario (proyecto huérfano), eliminarlo automáticamente
+            if (existingProject.getUser() == null) {
+                logger.warn("Proyecto huérfano detectado (ID: {}). Eliminando automáticamente...", projectId);
+                projectService.delete(id);
+                throw new IllegalArgumentException(
+                        "El proyecto no tenía un usuario asignado y fue eliminado automáticamente. Por favor, crea un nuevo proyecto.");
+            }
+
+            // Verificar que el usuario sea el dueño del proyecto
+            if (!existingProject.getUser().getId().equals(user.getId())) {
+                throw new IllegalArgumentException("No tienes permiso para editar este proyecto");
+            }
+
+            // Validar nombre
+            if (projectInput.getProjectName() == null || projectInput.getProjectName().trim().isEmpty()) {
+                throw new IllegalArgumentException("El nombre del proyecto no puede estar vacío");
+            }
+
+            // Verificar unicidad del nombre solo si cambió
+            if (!existingProject.getProjectName().equals(projectInput.getProjectName())
+                    && projectService.existsByNameAndUser(projectInput.getProjectName(), user)) {
+                throw new IllegalArgumentException("Ya tienes un proyecto con este nombre");
+            }
+
+            // Actualizar campos básicos
+            existingProject.setProjectName(projectInput.getProjectName());
+            existingProject.setDescription(projectInput.getDescription());
+
+            // Manejo inteligente de páginas: actualizar existentes, crear nuevas, borrar
+            // eliminadas
+            if (projectInput.getPages() != null) {
+                // 1. Crear un mapa de páginas del input por ID
+                java.util.Map<UUID, PageInput> inputPagesMap = new java.util.HashMap<>();
+                java.util.List<PageInput> newPages = new java.util.ArrayList<>();
+
+                for (PageInput pageInput : projectInput.getPages()) {
+                    if (pageInput.getId() != null && !pageInput.getId().trim().isEmpty()) {
+                        try {
+                            UUID pageId = UUID.fromString(pageInput.getId());
+                            inputPagesMap.put(pageId, pageInput);
+                        } catch (IllegalArgumentException e) {
+                            logger.warn("ID de página inválido: {}", pageInput.getId());
+                        }
+                    } else {
+                        newPages.add(pageInput);
+                    }
+                }
+
+                // 2. Actualizar páginas existentes o marcar para borrado
+                java.util.Iterator<PageEntity> iterator = existingProject.getPages().iterator();
+                while (iterator.hasNext()) {
+                    PageEntity existingPage = iterator.next();
+                    PageInput pageInput = inputPagesMap.get(existingPage.getId());
+
+                    if (pageInput != null) {
+                        // Actualizar página existente
+                        existingPage.setPageName(pageInput.getPageName());
+                        if (pageInput.getConfig() != null) {
+                            setConfig(existingPage, pageInput);
+                        }
+                        if (pageInput.getCanvas() != null) {
+                            setCanvas(existingPage, pageInput);
+                        }
+                    } else {
+                        // Borrar página que ya no está en el input
+                        iterator.remove();
+                    }
+                }
+
+                // 3. Agregar páginas nuevas
+                for (PageInput newPageInput : newPages) {
+                    PageEntity newPage = createPageFromInput(newPageInput, existingProject);
+                    existingProject.getPages().add(newPage);
+                }
+            } else {
+                // Si no hay páginas en el input, borrar todas
+                existingProject.getPages().clear();
+            }
+
+            logger.info("Proyecto actualizado: {}", existingProject);
+
+            // NO llamar a projectService.update() para evitar OptimisticLockException
+            // La transacción @Transactional del método se encargará de persistir los
+            // cambios
+
+            // Forzar inicialización de relaciones Lazy para evitar
+            // LazyInitializationException
+            if (existingProject.getPages() != null) {
+                existingProject.getPages().forEach(page -> {
+                    if (page.getCanvas() != null) {
+                        if (page.getCanvas().getElements() != null)
+                            page.getCanvas().getElements().size();
+                        if (page.getCanvas().getConnections() != null)
+                            page.getCanvas().getConnections().size();
+                    }
+                });
+            }
+
+            return existingProject;
+
+        } catch (Exception e) {
+            logger.error("Error actualizando proyecto: ", e);
+            throw e;
         }
-
-        logger.info("Proyecto actualizado: {}", existingProject);
-
-        return projectService.create(existingProject);
     }
 
     @MutationMapping
@@ -262,6 +452,13 @@ public class GraphqlController {
         }
 
         return elementRepository.save(element);
+    }
+
+    @org.springframework.graphql.data.method.annotation.GraphQlExceptionHandler
+    public graphql.GraphQLError handle(Exception ex) {
+        logger.error("Error no manejado en GraphQL: ", ex);
+        return graphql.GraphQLError.newError().errorType(graphql.ErrorType.DataFetchingException)
+                .message(ex.getMessage()).build();
     }
 
     // oe si se puede hacer mejor me explican que estoy francamente un poco idiota

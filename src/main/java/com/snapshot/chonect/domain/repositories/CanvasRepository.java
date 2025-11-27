@@ -4,7 +4,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import com.snapshot.chonect.domain.models.CanvasEntity;
+import java.util.UUID;
 
 @Repository
-public interface CanvasRepository extends JpaRepository<CanvasEntity, Long> {
+public interface CanvasRepository extends JpaRepository<CanvasEntity, UUID> {
 }

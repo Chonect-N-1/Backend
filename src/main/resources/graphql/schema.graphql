@@ -58,6 +58,7 @@ input ProjectInput {
 }
 
 input PageInput {
+  id: ID # UUID de página existente (null para páginas nuevas)
   pageName: String!
   config: PageConfigInput
   canvas: CanvasInput
