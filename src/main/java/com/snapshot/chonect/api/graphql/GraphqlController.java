@@ -345,6 +345,13 @@ public class GraphqlController {
                 java.util.Map<UUID, PageInput> inputPagesMap = new java.util.HashMap<>();
                 java.util.List<PageInput> newPages = new java.util.ArrayList<>();
 
+                // Lógica robusta: Si hay 1 sola página existente y 1 sola página en el input
+                // con ID temporal,
+                // asumimos que es la misma página para evitar borrarla y recrearla.
+                boolean isSinglePageUpdate = existingProject.getPages().size() == 1
+                        && projectInput.getPages().size() == 1;
+                UUID singleExistingPageId = isSinglePageUpdate ? existingProject.getPages().get(0).getId() : null;
+
                 for (PageInput pageInput : projectInput.getPages()) {
                     if (pageInput.getId() != null && !pageInput.getId().trim().isEmpty()) {
                         try {
@@ -352,24 +359,42 @@ public class GraphqlController {
                             inputPagesMap.put(pageId, pageInput);
                         } catch (IllegalArgumentException e) {
                             // ID temporal del frontend (no es UUID válido)
-                            // Tratar como página nueva
-                            logger.debug(
-                                    "ID de página no es UUID válido (probablemente ID temporal): {}. Tratando como página nueva.",
-                                    pageInput.getId());
-                            newPages.add(pageInput);
+                            if (isSinglePageUpdate) {
+                                logger.info(
+                                        "Detectado update de página única con ID temporal. Reutilizando ID existente: {}",
+                                        singleExistingPageId);
+                                inputPagesMap.put(singleExistingPageId, pageInput);
+                            } else {
+                                // Tratar como página nueva
+                                logger.debug(
+                                        "ID de página no es UUID válido (probablemente ID temporal): {}. Tratando como página nueva.",
+                                        pageInput.getId());
+                                newPages.add(pageInput);
+                            }
                         }
                     } else {
-                        newPages.add(pageInput);
+                        if (isSinglePageUpdate) {
+                            logger.info("Detectado update de página única sin ID. Reutilizando ID existente: {}",
+                                    singleExistingPageId);
+                            inputPagesMap.put(singleExistingPageId, pageInput);
+                        } else {
+                            newPages.add(pageInput);
+                        }
                     }
                 }
 
                 // 2. Actualizar páginas existentes o marcar para borrado
+                logger.debug("Procesando páginas existentes. Total: {}", existingProject.getPages().size());
                 java.util.Iterator<PageEntity> iterator = existingProject.getPages().iterator();
                 while (iterator.hasNext()) {
                     PageEntity existingPage = iterator.next();
-                    PageInput pageInput = inputPagesMap.get(existingPage.getId());
+                    logger.debug("Revisando página existente ID: {}", existingPage.getId());
+
+                    // REMOVE del mapa para saber cuáles quedan sin procesar
+                    PageInput pageInput = inputPagesMap.remove(existingPage.getId());
 
                     if (pageInput != null) {
+                        logger.debug("Coincidencia encontrada. Actualizando página ID: {}", existingPage.getId());
                         // Actualizar página existente
                         existingPage.setPageName(pageInput.getPageName());
                         if (pageInput.getConfig() != null) {
@@ -379,15 +404,21 @@ public class GraphqlController {
                             setCanvas(existingPage, pageInput);
                         }
                     } else {
+                        logger.debug("No hay coincidencia en input. Borrando página ID: {}", existingPage.getId());
                         // Borrar página que ya no está en el input
                         iterator.remove();
                     }
                 }
 
-                // 3. Agregar páginas nuevas
+                // 3. Agregar páginas nuevas (incluyendo las que tenían ID pero no coincidían)
+                logger.debug("Páginas restantes en mapa (nuevas): {}", inputPagesMap.size());
+                newPages.addAll(inputPagesMap.values());
+                logger.debug("Total páginas nuevas a agregar: {}", newPages.size());
+
                 for (PageInput newPageInput : newPages) {
                     PageEntity newPage = createPageFromInput(newPageInput, existingProject);
                     existingProject.getPages().add(newPage);
+                    logger.debug("Página nueva agregada: {}", newPage.getPageName());
                 }
             } else {
                 // Si no hay páginas en el input, borrar todas
@@ -398,23 +429,18 @@ public class GraphqlController {
             logger.debug("Páginas antes del flush: {}", existingProject.getPages().size());
 
             // Flush explícito para asegurar que todos los cambios se persisten
-            // Esto garantiza que los elementos nuevos obtengan IDs generados por la base de
-            // datos
             entityManager.flush();
             logger.debug("Flush completado");
 
-            // CRÍTICO: Limpiar el contexto de persistencia para forzar recarga
-            // Esto asegura que las colecciones lazy se recarguen con los datos más
-            // recientes
+            // CRÍTICO: Limpiar el contexto de persistencia
             entityManager.clear();
             logger.debug("EntityManager cleared");
 
-            // Re-fetch del proyecto con todas sus relaciones
+            // Re-fetch del proyecto
             ProjectEntity refreshedProject = projectService.getByIdWithPages(id)
                     .orElseThrow(() -> new IllegalArgumentException("Proyecto no encontrado después del flush"));
 
-            // Forzar inicialización de relaciones Lazy para evitar
-            // LazyInitializationException
+            // Verificación
             if (refreshedProject.getPages() != null) {
                 logger.debug("=== INICIANDO VERIFICACIÓN DE PÁGINAS Y ELEMENTOS ===");
                 logger.debug("Total de páginas: {}", refreshedProject.getPages().size());
@@ -448,7 +474,6 @@ public class GraphqlController {
                         if (page.getCanvas().getConnections() != null) {
                             int connectionCount = page.getCanvas().getConnections().size();
                             logger.debug("  Conexiones count: {}", connectionCount);
-                            page.getCanvas().getConnections().size();
                         }
                     } else {
                         logger.warn("  ⚠️ Página NO tiene canvas asociado");
