@@ -19,6 +19,9 @@ public class PageEntity {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    @Version
+    private Long version;
+
     private String pageName;
 
     @Embedded

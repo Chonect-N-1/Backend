@@ -20,11 +20,16 @@ public class CanvasEntity {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    @Version
+    private Long version;
+
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "canvas_id")
+    @org.hibernate.annotations.BatchSize(size = 10)
     private List<ElementEntity> elements = new ArrayList<>();
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "canvas_id")
+    @org.hibernate.annotations.BatchSize(size = 10)
     private List<ConnectionEntity> connections = new ArrayList<>();
 }

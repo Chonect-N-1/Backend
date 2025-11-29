@@ -15,6 +15,9 @@ public class ConnectionEntity {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    @Version
+    private Long version;
+
     private String fromElementId;
     private String toElementId;
     private String actionType;

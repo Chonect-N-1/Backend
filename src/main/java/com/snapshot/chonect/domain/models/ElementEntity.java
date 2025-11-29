@@ -17,6 +17,9 @@ public class ElementEntity {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    @Version
+    private Long version;
+
     private String elementId;
     private String type;
     private String positionX;

@@ -15,6 +15,9 @@ public class ProjectEntity {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    @Version
+    private Long version;
+
     private String projectName;
 
     @Column(length = 500)
@@ -25,5 +28,6 @@ public class ProjectEntity {
     private UserEntity user;
 
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
+    @org.hibernate.annotations.BatchSize(size = 10)
     private List<PageEntity> pages = new ArrayList<>();
 }
