@@ -23,7 +23,14 @@ import com.snapshot.chonect.domain.models.ProjectEntity;
 import com.snapshot.chonect.infrastructure.services.ProjectService;
 import com.snapshot.chonect.domain.repositories.ElementRepository;
 import com.snapshot.chonect.utils.objects.ElementLayer;
+import com.snapshot.chonect.utils.objects.ElementLayer;
 import com.snapshot.chonect.utils.objects.PageConfig;
+import com.snapshot.chonect.domain.models.UserConfigEntity;
+import com.snapshot.chonect.domain.models.FolderEntity;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.graphql.data.method.annotation.SchemaMapping;
+import com.snapshot.chonect.domain.repositories.FolderRepository;
+import com.snapshot.chonect.domain.repositories.UserConfigRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -47,6 +54,9 @@ public class GraphqlController {
     private final com.snapshot.chonect.infrastructure.services.UserServices userServices;
     private final ProjectService projectService;
     private final ElementRepository elementRepository;
+    private final FolderRepository folderRepository;
+    private final UserConfigRepository userConfigRepository;
+    private final ObjectMapper objectMapper;
 
     // esta etiqueta @QueryMapping es usada para mapear las consultas a la API
     // GraphQL
@@ -162,7 +172,11 @@ public class GraphqlController {
                 existingElement.setType(elementInput.getType());
                 existingElement.setPositionX(elementInput.getPositionX());
                 existingElement.setPositionY(elementInput.getPositionY());
-                existingElement.setStyles(elementInput.getStyles());
+                try {
+                    existingElement.setStyles(objectMapper.writeValueAsString(elementInput.getStyles()));
+                } catch (Exception e) {
+                    logger.error("Error serializing styles", e);
+                }
 
                 if (elementInput.getLayer() != null) {
                     if (existingElement.getLayer() == null) {
@@ -235,7 +249,12 @@ public class GraphqlController {
         element.setType(elementInput.getType());
         element.setPositionX(elementInput.getPositionX());
         element.setPositionY(elementInput.getPositionY());
-        element.setStyles(elementInput.getStyles());
+        element.setPositionY(elementInput.getPositionY());
+        try {
+            element.setStyles(objectMapper.writeValueAsString(elementInput.getStyles()));
+        } catch (Exception e) {
+            logger.error("Error serializing styles", e);
+        }
 
         if (elementInput.getLayer() != null) {
             ElementLayer layer = new ElementLayer();
@@ -273,6 +292,14 @@ public class GraphqlController {
         ProjectEntity project = new ProjectEntity();
         project.setProjectName(projectInput.getProjectName());
         project.setUser(user); // ✅ Asignar el usuario al proyecto
+        if (projectInput.getFolderId() != null) {
+            try {
+                UUID folderId = UUID.fromString(projectInput.getFolderId());
+                folderRepository.findById(folderId).ifPresent(project::setFolder);
+            } catch (Exception e) {
+                logger.warn("Folder ID invalido: " + projectInput.getFolderId());
+            }
+        }
 
         if (projectInput.getPages() != null) {
             for (PageInput pageInput : projectInput.getPages()) {
@@ -337,6 +364,14 @@ public class GraphqlController {
             // Actualizar campos básicos
             existingProject.setProjectName(projectInput.getProjectName());
             existingProject.setDescription(projectInput.getDescription());
+            if (projectInput.getFolderId() != null) {
+                try {
+                    UUID folderId = UUID.fromString(projectInput.getFolderId());
+                    folderRepository.findById(folderId).ifPresent(existingProject::setFolder);
+                } catch (Exception e) {
+                    logger.warn("Folder ID invalido: " + projectInput.getFolderId());
+                }
+            }
 
             // Manejo inteligente de páginas: actualizar existentes, crear nuevas, borrar
             // eliminadas
@@ -504,11 +539,15 @@ public class GraphqlController {
     }
 
     @MutationMapping
-    public ElementEntity updateElementStyles(@Argument String elementId, @Argument String styles) {
+    public ElementEntity updateElementStyles(@Argument String elementId, @Argument Object styles) {
         ElementEntity element = elementRepository.findByElementId(elementId)
                 .orElseThrow(() -> new RuntimeException("Element not found with id: " + elementId));
 
-        element.setStyles(styles);
+        try {
+            element.setStyles(objectMapper.writeValueAsString(styles));
+        } catch (Exception e) {
+            throw new RuntimeException("Error serializing styles", e);
+        }
 
         return elementRepository.save(element);
     }
@@ -521,7 +560,13 @@ public class GraphqlController {
         element.setType(elementInput.getType());
         element.setPositionX(elementInput.getPositionX());
         element.setPositionY(elementInput.getPositionY());
-        element.setStyles(elementInput.getStyles());
+        element.setPositionX(elementInput.getPositionX());
+        element.setPositionY(elementInput.getPositionY());
+        try {
+            element.setStyles(objectMapper.writeValueAsString(elementInput.getStyles()));
+        } catch (Exception e) {
+            throw new RuntimeException("Error serializing styles", e);
+        }
 
         if (elementInput.getLayer() != null) {
             if (element.getLayer() == null) {
@@ -540,6 +585,72 @@ public class GraphqlController {
         logger.error("Error no manejado en GraphQL: ", ex);
         return graphql.GraphQLError.newError().errorType(graphql.ErrorType.DataFetchingException)
                 .message(ex.getMessage()).build();
+    }
+
+    @QueryMapping
+    public UserConfigEntity getUserConfig() {
+        String email = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication()
+                .getName();
+        com.snapshot.chonect.domain.models.UserEntity user = userServices.getByEmail(email);
+        return user.getConfig();
+    }
+
+    @QueryMapping
+    public List<FolderEntity> getFolders() {
+        String email = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication()
+                .getName();
+        com.snapshot.chonect.domain.models.UserEntity user = userServices.getByEmail(email);
+        return user.getFolders();
+    }
+
+    @SchemaMapping(typeName = "User")
+    public int numberOfProjects(com.snapshot.chonect.domain.models.UserEntity user) {
+        return user.getProjects() != null ? user.getProjects().size() : 0;
+    }
+
+    @SchemaMapping(typeName = "User")
+    public List<String> recentProjectIds(com.snapshot.chonect.domain.models.UserEntity user) {
+        if (user.getProjects() == null)
+            return java.util.Collections.emptyList();
+        // Since we don't have update timestamps, we just return the list of IDs
+        // converted to String
+        return user.getProjects().stream()
+                .map(project -> project.getId().toString())
+                .collect(java.util.stream.Collectors.toList());
+    }
+
+    @MutationMapping
+    public FolderEntity createFolder(@Argument String name) {
+        String email = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication()
+                .getName();
+        com.snapshot.chonect.domain.models.UserEntity user = userServices.getByEmail(email);
+
+        FolderEntity folder = new FolderEntity();
+        folder.setName(name);
+        folder.setUser(user);
+        return folderRepository.save(folder);
+    }
+
+    @SchemaMapping(typeName = "Element", field = "styles")
+    public Object getStylesAsJson(ElementEntity element) {
+        try {
+            if (element.getStyles() == null)
+                return null;
+            return objectMapper.readValue(element.getStyles(), Object.class);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    @SchemaMapping(typeName = "UserConfig", field = "themes")
+    public Object getThemesAsJson(UserConfigEntity config) {
+        try {
+            if (config.getThemes() == null)
+                return null;
+            return objectMapper.readValue(config.getThemes(), Object.class);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     // oe si se puede hacer mejor me explican que estoy francamente un poco idiota

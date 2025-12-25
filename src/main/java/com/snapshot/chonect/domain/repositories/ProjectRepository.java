@@ -15,7 +15,8 @@ import java.util.UUID;
 public interface ProjectRepository extends JpaRepository<ProjectEntity, UUID> {
     boolean existsByProjectNameAndUser(String projectName, UserEntity user);
 
-    @EntityGraph(attributePaths = { "pages", "pages.canvas", "pages.canvas.elements", "pages.canvas.connections" })
+    @EntityGraph(attributePaths = { "pages", "pages.canvas", "pages.canvas.elements", "pages.canvas.connections",
+            "user" })
     List<ProjectEntity> findAllBy();
 
     @EntityGraph(attributePaths = { "pages", "pages.canvas", "pages.canvas.elements", "pages.canvas.connections",

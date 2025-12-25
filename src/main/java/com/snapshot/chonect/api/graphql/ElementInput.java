@@ -8,6 +8,6 @@ public class ElementInput {
     private String type;
     private String positionX;
     private String positionY;
-    private String styles;
+    private Object styles;
     private ElementLayerInput layer;
 }

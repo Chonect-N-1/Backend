@@ -27,6 +27,10 @@ public class ProjectEntity {
     @JoinColumn(name = "user_id")
     private UserEntity user;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "folder_id")
+    private FolderEntity folder;
+
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
     @org.hibernate.annotations.BatchSize(size = 10)
     private List<PageEntity> pages = new ArrayList<>();

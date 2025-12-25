@@ -7,5 +7,6 @@ import java.util.List;
 public class ProjectInput {
     private String projectName;
     private String description;
+    private String folderId;
     private List<PageInput> pages;
 }

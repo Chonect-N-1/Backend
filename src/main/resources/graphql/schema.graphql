@@ -1,8 +1,37 @@
+scalar JSON
+
+type UserConfig {
+  themes: JSON
+  plan: String
+  planExpirationDate: String
+}
+
+type Folder {
+  id: ID!
+  name: String!
+  projects: [Project]
+}
+
 type Project {
   id: ID!
   projectName: String!
   description: String
+  folderId: ID
+  folder: Folder
   pages: [Page]
+  user: User
+}
+
+type User {
+  id: ID!
+  firstName: String
+  lastName: String
+  username: String
+  email: String
+  numberOfProjects: Int
+  recentProjectIds: [String]
+  config: UserConfig
+  folders: [Folder]
 }
 
 type Page {
@@ -15,10 +44,11 @@ type Page {
 type PageConfig {
   grid: String
   backgroundColor: String
+  resolution: String
 }
 
 type Canvas {
-  id: ID!
+  id: ID
   elements: [Element]
   connections: [Connection]
 }
@@ -29,9 +59,9 @@ type Element {
   type: String!
   positionX: String!
   positionY: String!
-  x: String! # Alias para positionX (compatibilidad con frontend)
-  y: String! # Alias para positionY (compatibilidad con frontend)
-  styles: String
+  x: String! # Alias para positionX
+  y: String! # Alias para positionY
+  styles: JSON # Changed to JSON
   layer: ElementLayer
 }
 
@@ -54,11 +84,12 @@ type Connection {
 input ProjectInput {
   projectName: String!
   description: String
+  folderId: ID # Optional folder assignment
   pages: [PageInput]
 }
 
 input PageInput {
-  id: ID # UUID de página existente (null para páginas nuevas)
+  id: ID
   pageName: String!
   config: PageConfigInput
   canvas: CanvasInput
@@ -67,6 +98,7 @@ input PageInput {
 input PageConfigInput {
   grid: String
   backgroundColor: String
+  resolution: String
 }
 
 input CanvasInput {
@@ -79,7 +111,7 @@ input ElementInput {
   type: String!
   positionX: String!
   positionY: String!
-  styles: String
+  styles: JSON # Changed to JSON
   layer: ElementLayerInput
 }
 
@@ -101,6 +133,8 @@ input ConnectionInput {
 type Query {
   findProjectById(id: ID!): Project
   findAllProjects: [Project]
+  getUserConfig: UserConfig
+  getFolders: [Folder]
 }
 
 type Mutation {
@@ -111,6 +145,9 @@ type Mutation {
     positionX: String!
     positionY: String!
   ): Element
-  updateElementStyles(elementId: String!, styles: String!): Element
+  updateElementStyles(elementId: String!, styles: JSON!): Element
   updateElement(elementId: String!, elementInput: ElementInput!): Element
+
+  # Folder management
+  createFolder(name: String!): Folder
 }

@@ -6,4 +6,5 @@ import lombok.Data;
 public class PageConfigInput {
     private String grid;
     private String backgroundColor;
+    private String resolution;
 }
